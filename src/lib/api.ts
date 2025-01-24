@@ -3,24 +3,37 @@ import { supabase } from "./supabase";
 export type TaskType = "big" | "medium" | "small";
 
 export async function getTasks(type: TaskType) {
-  const { data, error } = await supabase
+  const { data: tasks, error: tasksError } = await supabase
     .from("tasks")
     .select("*")
     .eq("task_type", type)
     .order("created_at", { ascending: true });
 
-  if (error) throw error;
-  return data;
+  if (tasksError) throw tasksError;
+
+  // Haal Pomodoro counts op voor alle taken
+  const tasksWithPomodoro = await Promise.all(
+    tasks.map(async (task) => {
+      const pomodoroCount = await getTaskPomodoroCount(task.id);
+      return { ...task, pomodoroCount };
+    })
+  );
+
+  return tasksWithPomodoro;
 }
 
 export async function createTask(text: string, type: TaskType) {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("User not authenticated");
+
   const { data, error } = await supabase
     .from("tasks")
     .insert([
       {
         text,
         task_type: type,
-        user_id: supabase.auth.getUser().then(({ data }) => data.user?.id),
+        user_id: user.id,
       },
     ])
     .select()
@@ -78,4 +91,15 @@ export async function completePomodoroSession(sessionId: string) {
 
   if (error) throw error;
   return data;
+}
+
+export async function getTaskPomodoroCount(taskId: string) {
+  const { data, error } = await supabase
+    .from("pomodoro_sessions")
+    .select("*")
+    .eq("task_id", taskId)
+    .not("completed_at", "is", null);
+
+  if (error) throw error;
+  return data.length;
 }

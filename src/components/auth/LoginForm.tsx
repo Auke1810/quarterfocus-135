@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "./AuthProvider";
-import { Mail } from "lucide-react";
+import { Mail, CheckCircle2 } from "lucide-react";
 
 export function LoginForm() {
   const { signIn, signUp } = useAuth();
@@ -12,14 +12,20 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     try {
       if (isSignUp) {
         await signUp(email, password);
+        setSuccess("Registratie succesvol! Check je email om je account te verifiëren.");
+        // Reset form
+        setEmail("");
+        setPassword("");
       } else {
         await signIn(email, password);
       }
@@ -54,6 +60,12 @@ export function LoginForm() {
           />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
+        {success && (
+          <div className="text-sm text-green-600 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" />
+            {success}
+          </div>
+        )}
         <Button type="submit" className="w-full gap-2">
           <Mail className="h-4 w-4" />
           {isSignUp ? "Sign Up" : "Sign In"}
@@ -62,7 +74,11 @@ export function LoginForm() {
           type="button"
           variant="ghost"
           className="w-full"
-          onClick={() => setIsSignUp(!isSignUp)}
+          onClick={() => {
+            setIsSignUp(!isSignUp);
+            setError("");
+            setSuccess("");
+          }}
         >
           {isSignUp
             ? "Already have an account? Sign In"

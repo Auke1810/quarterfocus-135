@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { Card } from "./ui/card";
-import { Play, Pause, RotateCcw } from "lucide-react";
+import { Play, Pause, RotateCcw, Square } from "lucide-react";
 import { useToast } from "./ui/use-toast";
 import { createPomodoroSession, completePomodoroSession } from "@/lib/api";
 
@@ -10,21 +10,37 @@ interface PomodoroTimerProps {
   workTime?: number;
   breakTime?: number;
   onTimerComplete?: () => void;
+  onTimerStop?: () => void;
   taskId?: string;
+  autoStart?: boolean;
 }
 
 const PomodoroTimer = ({
   workTime = 50,
   breakTime = 10,
   onTimerComplete = () => {},
+  onTimerStop = () => {},
   taskId,
+  autoStart = false,
 }: PomodoroTimerProps) => {
   const { toast } = useToast();
   const [timeLeft, setTimeLeft] = useState(workTime * 60);
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(autoStart);
   const [progress, setProgress] = useState(100);
   const [isBreak, setIsBreak] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (autoStart && taskId && !isBreak) {
+      createPomodoroSession(taskId, workTime)
+        .then((session) => {
+          setCurrentSessionId(session.id);
+        })
+        .catch((error) => {
+          console.error("Error creating pomodoro session:", error);
+        });
+    }
+  }, [autoStart, taskId, workTime]);
 
   useEffect(() => {
     let timer: number;
@@ -106,6 +122,26 @@ const PomodoroTimer = ({
     setCurrentSessionId(null);
   };
 
+  const stopTimer = async () => {
+    setIsRunning(false);
+    if (currentSessionId) {
+      try {
+        await completePomodoroSession(currentSessionId);
+        setCurrentSessionId(null);
+      } catch (error) {
+        console.error("Error completing pomodoro session:", error);
+      }
+    }
+    setTimeLeft(workTime * 60);
+    setProgress(100);
+    setIsBreak(false);
+    onTimerStop();
+    toast({
+      title: "Timer Stopped",
+      description: "Pomodoro session has been stopped",
+    });
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -142,6 +178,15 @@ const PomodoroTimer = ({
             className="w-12 h-12"
           >
             <RotateCcw className="h-6 w-6" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={stopTimer}
+            className="w-12 h-12"
+          >
+            <Square className="h-6 w-6" />
           </Button>
         </div>
       </div>

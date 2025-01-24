@@ -66,13 +66,13 @@ const Home = ({ onNewDay }: HomeProps) => {
       const newTask = await createTask(text, type);
       switch (type) {
         case "big":
-          setBigTasks([...bigTasks, newTask]);
+          setBigTasks((prev) => [...prev, newTask]);
           break;
         case "medium":
-          setMediumTasks([...mediumTasks, newTask]);
+          setMediumTasks((prev) => [...prev, newTask]);
           break;
         case "small":
-          setSmallTasks([...smallTasks, newTask]);
+          setSmallTasks((prev) => [...prev, newTask]);
           break;
       }
     } catch (error) {
@@ -82,7 +82,26 @@ const Home = ({ onNewDay }: HomeProps) => {
 
   const handleToggleTask = async (id: string, type: TaskType) => {
     try {
-      const task = await updateTask(id, { completed: true });
+      // Vind eerst de huidige status van de taak
+      let currentTask;
+      switch (type) {
+        case "big":
+          currentTask = bigTasks.find(t => t.id === id);
+          break;
+        case "medium":
+          currentTask = mediumTasks.find(t => t.id === id);
+          break;
+        case "small":
+          currentTask = smallTasks.find(t => t.id === id);
+          break;
+      }
+
+      if (!currentTask) return;
+
+      // Toggle de completed status
+      const task = await updateTask(id, { completed: !currentTask.completed });
+      
+      // Update de juiste lijst met taken
       switch (type) {
         case "big":
           setBigTasks(bigTasks.map((t) => (t.id === id ? task : t)));
@@ -120,63 +139,46 @@ const Home = ({ onNewDay }: HomeProps) => {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-full p-4">
+      <div className="flex justify-center items-center h-full">
         <LoginForm />
       </div>
     );
   }
 
   return (
-    <div className="w-full">
-      <div className="bg-gray-50 p-4">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">
-              1-3-5 Todo List
-            </h1>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleNewDay}
-              className="h-8 w-8"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-          </div>
+    <div className="space-y-6 p-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Today's Tasks</h2>
+        <Button variant="outline" size="icon" onClick={handleNewDay}>
+          <RotateCcw className="h-4 w-4" />
+        </Button>
+      </div>
 
-          <PomodoroTimer
-            workTime={50}
-            breakTime={10}
-            onTimerComplete={() => console.log("Timer complete")}
-          />
-
-          <TaskSection
-            title="Big Task (1)"
-            maxTasks={1}
-            tasks={bigTasks}
-            onTaskAdd={(text) => handleAddTask(text, "big")}
-            onTaskToggle={(id) => handleToggleTask(id, "big")}
-            onTaskDelete={(id) => handleDeleteTask(id, "big")}
-          />
-
-          <TaskSection
-            title="Medium Tasks (3)"
-            maxTasks={3}
-            tasks={mediumTasks}
-            onTaskAdd={(text) => handleAddTask(text, "medium")}
-            onTaskToggle={(id) => handleToggleTask(id, "medium")}
-            onTaskDelete={(id) => handleDeleteTask(id, "medium")}
-          />
-
-          <TaskSection
-            title="Small Tasks (5)"
-            maxTasks={5}
-            tasks={smallTasks}
-            onTaskAdd={(text) => handleAddTask(text, "small")}
-            onTaskToggle={(id) => handleToggleTask(id, "small")}
-            onTaskDelete={(id) => handleDeleteTask(id, "small")}
-          />
-        </div>
+      <div className="space-y-6">
+        <TaskSection
+          title="Key Focus Task"
+          tasks={bigTasks}
+          maxTasks={1}
+          onTaskAdd={(text) => handleAddTask(text, "big")}
+          onTaskToggle={(id) => handleToggleTask(id, "big")}
+          onTaskDelete={(id) => handleDeleteTask(id, "big")}
+        />
+        <TaskSection
+          title="Secondary Focus Tasks (3)"
+          tasks={mediumTasks}
+          maxTasks={3}
+          onTaskAdd={(text) => handleAddTask(text, "medium")}
+          onTaskToggle={(id) => handleToggleTask(id, "medium")}
+          onTaskDelete={(id) => handleDeleteTask(id, "medium")}
+        />
+        <TaskSection
+          title="The Rest (5)"
+          tasks={smallTasks}
+          maxTasks={5}
+          onTaskAdd={(text) => handleAddTask(text, "small")}
+          onTaskToggle={(id) => handleToggleTask(id, "small")}
+          onTaskDelete={(id) => handleDeleteTask(id, "small")}
+        />
       </div>
       <Toaster />
     </div>
