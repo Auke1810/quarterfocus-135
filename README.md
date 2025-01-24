@@ -32,6 +32,52 @@ A productivity-focused web application that combines the 1-3-5 task management m
 - Supabase for backend and authentication
 - ShadcnUI component library
 
+## QuarterFocus Project
+
+Een modern React project gebouwd met de nieuwste technologieën voor optimale ontwikkeling en gebruikerservaring.
+
+## Tech Stack
+
+- ⚛️ **React 18** - Voor een robuuste UI met de nieuwste features
+- 🔷 **TypeScript** - Voor type-veilige code
+- ⚡ **Vite** - Snelle development en build tooling
+- 🎨 **Tailwind CSS** - Utility-first CSS framework
+- 🎭 **Radix UI** - Toegankelijke UI componenten
+- 🔐 **Supabase** - Backend en database oplossing
+- 📚 **Storybook** - Component documentatie en development
+
+## Project Structuur
+
+```
+src/
+  ├── components/     # UI componenten
+  ├── lib/           # Gedeelde utilities
+  ├── stories/       # Storybook stories
+  ├── types/         # TypeScript types
+  └── App.tsx        # Hoofdapplicatie component
+```
+
+## Getting Started
+
+1. Clone het project
+2. Installeer dependencies:
+   ```bash
+   npm install
+   ```
+3. Start de development server:
+   ```bash
+   npm run dev
+   ```
+4. Open http://localhost:5173 in je browser
+
+## Beschikbare Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Bouw voor productie
+- `npm run preview` - Preview productie build
+- `npm run lint` - Controleer code kwaliteit
+- `npm run types:supabase` - Genereer Supabase types
+
 ## Getting Started
 
 1. Clone the repository
