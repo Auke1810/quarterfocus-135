@@ -65,13 +65,17 @@ export async function createPomodoroSession(
   taskId: string,
   durationMinutes: number,
 ) {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("User not authenticated");
+
   const { data, error } = await supabase
     .from("pomodoro_sessions")
     .insert([
       {
         task_id: taskId,
         duration_minutes: durationMinutes,
-        user_id: supabase.auth.getUser().then(({ data }) => data.user?.id),
+        user_id: user.id,
       },
     ])
     .select()

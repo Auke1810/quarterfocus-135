@@ -1,43 +1,26 @@
-import React from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetDescription,
-} from "./ui/sheet";
-import { Button } from "./ui/button";
-import { ListTodo } from "lucide-react";
-import Home from "./home";
+import React, { useEffect } from "react";
 import { LoginButton } from "./auth/LoginButton";
-import { useAuth } from "./auth/AuthProvider";
+import { TodoList } from "./TodoList";
+import qfLogo from "@/assets/qflogo.svg";
 
 const TodoPanel = () => {
+  useEffect(() => {
+    console.log('TodoPanel component mounted');
+  }, []);
+
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="fixed right-4 top-4 z-50"
-        >
-          <ListTodo className="h-5 w-5" />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px] p-0">
-        <SheetHeader className="px-4 py-2 border-b flex justify-between items-center">
-          <SheetTitle>Quarter Focus 1-3-5</SheetTitle>
-          <LoginButton />
-        </SheetHeader>
-        <div className="overflow-y-auto h-[calc(100vh-64px)]">
-          <Home />
+    <div className="flex flex-col h-full">
+      <header className="px-4 py-2 border-b flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <img src={qfLogo} alt="Quarter Focus Logo" className="h-6 w-6" />
+          <h2 className="text-lg font-semibold">Quarter Focus</h2>
         </div>
-        <SheetDescription className="sr-only">
-          A panel containing your 1-3-5 todo list and task management tools
-        </SheetDescription>
-      </SheetContent>
-    </Sheet>
+        <LoginButton />
+      </header>
+      <div className="flex-1 overflow-y-auto p-4">
+        <TodoList />
+      </div>
+    </div>
   );
 };
 

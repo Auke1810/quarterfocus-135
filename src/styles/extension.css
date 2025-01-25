@@ -1,0 +1,41 @@
+/* Extension popup styling */
+:root {
+  --extension-width: 400px;
+  --extension-height: 600px;
+}
+
+body {
+  width: var(--extension-width);
+  height: var(--extension-height);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Zorg ervoor dat de root app container de volledige popup vult */
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scroll styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

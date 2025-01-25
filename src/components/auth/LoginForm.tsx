@@ -6,7 +6,11 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "./AuthProvider";
 import { Mail, CheckCircle2 } from "lucide-react";
 
-export function LoginForm() {
+interface LoginFormProps {
+  onSuccess?: () => void;
+}
+
+export function LoginForm({ onSuccess }: LoginFormProps) {
   const { signIn, signUp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
@@ -28,6 +32,7 @@ export function LoginForm() {
         setPassword("");
       } else {
         await signIn(email, password);
+        onSuccess?.();
       }
     } catch (err) {
       setError(err.message);

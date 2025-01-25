@@ -10,6 +10,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+import { Info } from "lucide-react";
 
 interface Task {
   id: string;
@@ -19,12 +21,12 @@ interface Task {
 }
 
 interface TaskSectionProps {
-  title?: string;
+  title?: React.ReactNode;
   maxTasks?: number;
   tasks?: Task[];
-  onTaskAdd?: (task: string) => void;
-  onTaskToggle?: (taskId: string) => void;
-  onTaskDelete?: (taskId: string) => void;
+  onTaskAdd?: (text: string) => void;
+  onTaskToggle?: (id: string) => void;
+  onTaskDelete?: (id: string) => void;
 }
 
 const TaskSection = ({
@@ -71,7 +73,9 @@ const TaskSection = ({
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-      <h3 className="text-lg font-semibold mb-3">{title}</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold mb-3">{title}</h3>
+      </div>
 
       <Collapsible open={showTimer} onOpenChange={setShowTimer}>
         <CollapsibleContent className="mb-4">

@@ -1,19 +1,62 @@
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { useAuth } from "./AuthProvider";
-import { LogIn, LogOut } from "lucide-react";
+import { User } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { LoginForm } from "./LoginForm";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export function LoginButton() {
-  const { user, signIn, signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
 
-  return user ? (
-    <Button variant="outline" onClick={signOut} className="gap-2">
-      <LogOut className="h-4 w-4" />
-      Sign Out
-    </Button>
-  ) : (
-    <Button variant="outline" onClick={signIn} className="gap-2">
-      <LogIn className="h-4 w-4" />
-      Sign In
-    </Button>
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <User className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          {user ? (
+            <>
+              <DropdownMenuItem>
+                Preferences
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                My Account
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={signOut}>
+                Logout
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <DropdownMenuItem onSelect={() => setOpen(true)}>
+              Inloggen / Inschrijven
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign In</DialogTitle>
+            <DialogDescription>
+              Log in om toegang te krijgen tot je taken en instellingen.
+            </DialogDescription>
+          </DialogHeader>
+          <LoginForm onSuccess={() => setOpen(false)} />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

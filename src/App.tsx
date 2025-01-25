@@ -1,20 +1,17 @@
-import { Suspense } from "react";
-import { useRoutes, Routes, Route } from "react-router-dom";
-import TodoPanel from "./components/TodoPanel";
-import routes from "tempo-routes";
+import { useEffect } from "react";
 import { AuthProvider } from "./components/auth/AuthProvider";
+import TodoPanel from "./components/TodoPanel";
 
 function App() {
+  useEffect(() => {
+    console.log('App component mounted');
+  }, []);
+
   return (
     <AuthProvider>
-      <Suspense fallback={<p>Loading...</p>}>
-        <>
-          <Routes>
-            <Route path="/" element={<TodoPanel />} />
-          </Routes>
-          {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
-        </>
-      </Suspense>
+      <div className="w-[400px] h-[600px] bg-white">
+        <TodoPanel />
+      </div>
     </AuthProvider>
   );
 }
