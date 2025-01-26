@@ -14,6 +14,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { updateTaskInfo, getTaskInfo } from "@/lib/api";
+import dragHandle from "@/assets/draghandle.svg";
+import dragHandleFocus from "@/assets/draghandle-focus.svg";
 
 interface Task {
   id: string;
@@ -21,6 +23,7 @@ interface Task {
   completed: boolean;
   pomodoroCount?: number;
   info?: string;
+  hoveringDrag?: boolean; // Nieuwe property
 }
 
 interface TaskSectionProps {
@@ -46,12 +49,32 @@ const TaskSection = ({
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
   const [taskInfo, setTaskInfo] = useState<string>("");
   const [showingInfoFor, setShowingInfoFor] = useState<string | null>(null);
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks.map(task => ({
+    ...task,
+    hoveringDrag: false
+  })));
 
   // Update lokale tasks state wanneer props veranderen
   useEffect(() => {
-    setTasks(initialTasks);
+    setTasks(initialTasks.map(task => ({
+      ...task,
+      hoveringDrag: false
+    })));
   }, [initialTasks]);
+
+  const handleDragEnter = (taskId: string) => {
+    setTasks(tasks.map(task => ({
+      ...task,
+      hoveringDrag: task.id === taskId
+    })));
+  };
+
+  const handleDragLeave = (taskId: string) => {
+    setTasks(tasks.map(task => ({
+      ...task,
+      hoveringDrag: false
+    })));
+  };
 
   const handleAddTask = () => {
     if (newTask.trim() && tasks.length < maxTasks) {
@@ -242,6 +265,13 @@ const TaskSection = ({
                     >
                       <img src={trashIcon} alt="Delete" className="h-4 w-4" />
                     </Button>
+                    <img
+                      src={task.hoveringDrag ? dragHandleFocus : dragHandle}
+                      alt="Drag handle"
+                      className="h-4 w-4 cursor-grab"
+                      onMouseEnter={() => handleDragEnter(task.id)}
+                      onMouseLeave={() => handleDragLeave(task.id)}
+                    />
                   </div>
                 </div>
 
