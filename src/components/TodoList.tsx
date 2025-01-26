@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import TaskSection from './TaskSection';
 import { useTasks } from '@/hooks/useTasks';
+import { useDayFocus } from '@/hooks/useDayFocus';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { Info } from "lucide-react";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+
+const DEFAULT_FOCUS = "What is your focus today? Who would you like to be? Click to change.";
 
 const TaskInfo = ({ title, description }: { title: string; description: string }) => (
   <div className="flex items-center gap-2">
@@ -22,6 +26,10 @@ const TaskInfo = ({ title, description }: { title: string; description: string }
 );
 
 export const TodoList = () => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState('');
+  const { dayFocus, updateDayFocus } = useDayFocus();
+  
   const { 
     tasks: bigTasks, 
     loading: loadingBig,
@@ -46,10 +54,42 @@ export const TodoList = () => {
     deleteTask: deleteSmallTask
   } = useTasks('small');
 
+  const handleFocusClick = () => {
+    setEditText(dayFocus || DEFAULT_FOCUS);
+    setIsEditing(true);
+  };
+
+  const handleFocusSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editText.trim()) {
+      await updateDayFocus(editText.trim());
+    }
+    setIsEditing(false);
+  };
+
   return (
-    <div className="mt-4">
+    <div className="h-full flex flex-col">
+      {isEditing ? (
+        <form onSubmit={handleFocusSubmit} className="mb-3">
+          <Input
+            type="text"
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            className="text-sm text-center italic"
+            autoFocus
+            onBlur={handleFocusSubmit}
+          />
+        </form>
+      ) : (
+        <p 
+          className="text-sm text-gray-500 mb-3 text-center italic cursor-pointer hover:text-gray-700"
+          onClick={handleFocusClick}
+        >
+          {dayFocus || DEFAULT_FOCUS}
+        </p>
+      )}
       <h3 className="text-lg font-semibold mb-2">Focus Today</h3>
-      <div className="space-y-4">
+      <div className="space-y-4 flex-1 overflow-y-auto">
         <section>
           <TaskSection 
             title={

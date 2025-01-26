@@ -6,7 +6,9 @@ export interface Task {
   id: string;
   text: string;
   completed: boolean;
+  size: string;
   pomodoroCount?: number;
+  info?: string;
   user_id: string;
   task_type: 'big' | 'medium' | 'small';
   created_at: string;
@@ -105,38 +107,19 @@ export function useTasks(taskType: 'big' | 'medium' | 'small') {
     }
   };
 
-  const toggleTask = async (taskId: string) => {
-    if (!user) return;
+  const toggleTask = async (id: string, currentCompleted: boolean) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ completed: !currentCompleted })
+      .eq("id", id);
 
-    const task = tasks.find((t) => t.id === taskId);
-    if (!task) return;
+    if (error) throw error;
 
-    // Optimistic update
-    setTasks(current =>
-      current.map(t =>
-        t.id === taskId ? { ...t, completed: !t.completed } : t
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, completed: !currentCompleted } : task
       )
     );
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ completed: !task.completed })
-        .eq('id', taskId)
-        .eq('user_id', user.id);
-
-      if (error) {
-        // Revert on error
-        setTasks(current =>
-          current.map(t =>
-            t.id === taskId ? { ...t, completed: task.completed } : t
-          )
-        );
-        throw error;
-      }
-    } catch (error) {
-      console.error('Error toggling task:', error);
-    }
   };
 
   const deleteTask = async (taskId: string) => {

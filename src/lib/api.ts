@@ -56,9 +56,15 @@ export async function updateTask(id: string, updates: { completed?: boolean }) {
 }
 
 export async function deleteTask(id: string) {
-  const { error } = await supabase.from("tasks").delete().eq("id", id);
+  const { error } = await supabase
+    .from("tasks")
+    .delete()
+    .eq("id", id);
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error deleting task:", error);
+    throw error;
+  }
 }
 
 export async function createPomodoroSession(
@@ -106,4 +112,24 @@ export async function getTaskPomodoroCount(taskId: string) {
 
   if (error) throw error;
   return data.length;
+}
+
+export async function updateTaskInfo(id: string, info: string) {
+  const { error } = await supabase
+    .from("tasks")
+    .update({ info })
+    .eq("id", id);
+
+  if (error) throw error;
+}
+
+export async function getTaskInfo(id: string) {
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("info")
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+  return data?.info;
 }
