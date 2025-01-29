@@ -1,4 +1,4 @@
-[ ] Build for Chrome extension [free]
+[X] Build for Chrome extension [free]
 [ ] differentiate paid and free version
 - free use without loggin in
 - using chrome storage to store basic data

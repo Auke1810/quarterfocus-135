@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 
 const MAX_HEIGHT = 800; // Maximum hoogte in pixels
 const MIN_HEIGHT = 400; // Minimum hoogte in pixels
-const MAX_WIDTH = 600;  // Maximum breedte in pixels
-const MIN_WIDTH = 300;  // Minimum breedte in pixels
+const MIN_WIDTH = 400;  // Minimum breedte in pixels
 
 interface Size {
   width: number;
@@ -17,7 +16,7 @@ export const useScreenSize = (): Size => {
   });
 
   const calculateSize = () => {
-    const width = Math.max(MIN_WIDTH, Math.min(window.innerWidth, MAX_WIDTH));
+    const width = Math.max(MIN_WIDTH, window.innerWidth);
     const height = Math.max(MIN_HEIGHT, Math.min(window.innerHeight, MAX_HEIGHT));
     return { width, height };
   };

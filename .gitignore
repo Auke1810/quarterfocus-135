@@ -27,3 +27,6 @@ dist-ssr
 
 **/tempobook/dynamic/
 **/tempobook/storyboards/
+
+# windsurf rules
+.windsurfrules
