@@ -1,12 +1,13 @@
 /* Extension popup styling */
 :root {
   --extension-width: 400px;
-  --extension-height: 600px;
+  /* Remove fixed height to allow dynamic resizing */
+  --extension-min-height: 600px;
 }
 
 body {
   width: var(--extension-width);
-  height: var(--extension-height);
+  min-height: var(--extension-min-height);
   margin: 0;
   padding: 0;
   overflow-x: hidden;
