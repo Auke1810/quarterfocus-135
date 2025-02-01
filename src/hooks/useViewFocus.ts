@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ViewType } from '@/types/task';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { supabase } from '@/lib/supabase';
+import { useSupabase } from '@/hooks/useSupabase';
 
 export const useViewFocus = (viewType: ViewType) => {
   const [focus, setFocus] = useState<string>('');
@@ -11,6 +11,7 @@ export const useViewFocus = (viewType: ViewType) => {
     if (!user) return;
 
     const fetchFocus = async () => {
+      const { supabase } = useSupabase();
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
@@ -28,7 +29,7 @@ export const useViewFocus = (viewType: ViewType) => {
         ? 'tomorrow_focus'
         : 'week_focus';
 
-      setFocus(data?.[focusField] || '');
+      setFocus((data?.[focusField] as string) || '');
     };
 
     fetchFocus();
@@ -44,6 +45,7 @@ export const useViewFocus = (viewType: ViewType) => {
       : 'week_focus';
 
     // Eerst checken of er al een rij bestaat
+    const { supabase } = useSupabase();
     const { data } = await supabase
       .from('user_settings')
       .select('id')

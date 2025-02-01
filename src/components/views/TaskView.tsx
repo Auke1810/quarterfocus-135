@@ -14,8 +14,8 @@ export const TaskView: React.FC<TaskViewProps> = ({ viewType }) => {
   const { tasks, loading, addTask, updateTask, deleteTask, updateTaskPositions } = useTasks({ viewType });
   const { focus, updateFocus } = useViewFocus(viewType);
 
-  const handleAddTask = async (type: TaskType, text: string) => {
-    await addTask(type, text);
+  const handleAddTask = async (type: TaskType, text: string, date?: Date) => {
+    await addTask(type, text, date);
   };
 
   if (loading) {

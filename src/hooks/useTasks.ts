@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useSupabase } from '@/hooks/useSupabase';
 import { Task, TaskType, ViewType } from '@/types/task';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { startOfDay, endOfDay, addDays, startOfWeek, endOfWeek } from 'date-fns';
@@ -12,6 +12,7 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { supabase } = useSupabase();
 
   const fetchTasks = useCallback(async () => {
     if (!user) {
@@ -42,9 +43,11 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
             .lte('scheduled_for', endOfDay(tomorrow).toISOString());
           break;
         case 'week':
+          // For week view, we want to include today and the next 6 days
+          const weekEnd = addDays(now, 6);
           query = query
-            .gte('scheduled_for', startOfWeek(now).toISOString())
-            .lte('scheduled_for', endOfWeek(now).toISOString());
+            .gte('scheduled_for', startOfDay(now).toISOString())
+            .lte('scheduled_for', endOfDay(weekEnd).toISOString());
           break;
       }
 
@@ -56,7 +59,7 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
       }
 
       console.log('Fetched tasks:', data);
-      setTasks(data || []);
+      setTasks((data as unknown as Task[]) || []);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       if (error instanceof Error) {
@@ -71,7 +74,9 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
     fetchTasks();
   }, [fetchTasks]);
 
-  const getScheduledFor = () => {
+  const getScheduledFor = (date?: Date) => {
+    if (date) return date;
+    
     const now = new Date();
     switch (viewType) {
       case 'tomorrow':
@@ -84,7 +89,7 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
     }
   };
 
-  const addTask = async (task_type: TaskType, text: string) => {
+  const addTask = async (task_type: TaskType, text: string, date?: Date) => {
     if (!user) return;
 
     try {
@@ -96,7 +101,7 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
         info: '',
         position,
         user_id: user.id,
-        scheduled_for: getScheduledFor().toISOString()
+        scheduled_for: getScheduledFor(date).toISOString()
       };
 
       const { data, error } = await supabase
@@ -110,9 +115,70 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
         throw error;
       }
 
-      setTasks(prev => [...prev, data]);
+      if (data) {
+        // Eerst controleren of alle vereiste velden aanwezig zijn
+        const taskData = data as Record<string, unknown>;
+        if (
+          typeof taskData.id === 'string' &&
+          typeof taskData.text === 'string' &&
+          typeof taskData.task_type === 'string' &&
+          typeof taskData.completed === 'boolean' &&
+          typeof taskData.scheduled_for === 'string' &&
+          typeof taskData.user_id === 'string' &&
+          typeof taskData.created_at === 'string' &&
+          typeof taskData.updated_at === 'string' &&
+          (taskData.task_type === 'big' || taskData.task_type === 'medium' || taskData.task_type === 'small')
+        ) {
+          const task: Task = {
+            id: taskData.id,
+            text: taskData.text,
+            task_type: taskData.task_type,
+            completed: taskData.completed,
+            scheduled_for: taskData.scheduled_for,
+            user_id: taskData.user_id,
+            created_at: taskData.created_at,
+            updated_at: taskData.updated_at,
+            info: typeof taskData.info === 'string' ? taskData.info : undefined,
+            position: typeof taskData.position === 'number' ? taskData.position : undefined
+          };
+          setTasks(prev => [...prev, task]);
+        } else {
+          console.error('Invalid task data received:', taskData);
+          throw new Error('Invalid task data structure');
+        }
+      }
     } catch (error) {
       console.error('Error adding task:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+      }
+    }
+  };
+
+  const toggleTaskCompletion = async (taskId: string, completed: boolean) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          completed,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', taskId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating task completion:', error);
+        throw error;
+      }
+
+      // Update local state
+      setTasks(prev => 
+        prev.map(t => t.id === taskId ? { ...t, completed, updated_at: new Date().toISOString() } : t)
+      );
+    } catch (error) {
+      console.error('Error updating task completion:', error);
       if (error instanceof Error) {
         console.error('Error details:', error.message);
       }
@@ -123,11 +189,29 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
     if (!user) return;
 
     try {
+      // Als alleen completed wordt gewijzigd, gebruik dan toggleTaskCompletion
+      const existingTask = tasks.find(t => t.id === task.id);
+      if (existingTask && 
+          existingTask.completed !== task.completed && 
+          existingTask.text === task.text &&
+          existingTask.task_type === task.task_type &&
+          existingTask.scheduled_for === task.scheduled_for &&
+          existingTask.info === task.info &&
+          existingTask.position === task.position) {
+        return toggleTaskCompletion(task.id, task.completed);
+      }
+
       const updatedTask = {
-        ...task,
+        id: task.id,
+        text: task.text,
+        task_type: task.task_type,
+        completed: task.completed,
         scheduled_for: task.scheduled_for || getScheduledFor().toISOString(),
-        updated_at: new Date().toISOString(),
-        info: task.info || '' // Zorg ervoor dat info altijd wordt meegestuurd
+        info: task.info || '',
+        position: task.position,
+        user_id: task.user_id,
+        created_at: task.created_at,
+        updated_at: new Date().toISOString()
       };
 
       const { error } = await supabase

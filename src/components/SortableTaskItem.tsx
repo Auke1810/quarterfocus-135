@@ -14,12 +14,14 @@ interface SortableTaskItemProps {
   task: TaskWithParsedInfo;
   onUpdateTask: (task: Task) => Promise<void>;
   onDeleteTask: (taskId: string) => Promise<void>;
+  variant?: 'default' | 'week';
 }
 
 export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   task,
   onUpdateTask,
   onDeleteTask,
+  variant = 'default'
 }) => {
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [editingNote, setEditingNote] = useState<string | null>(null);
@@ -77,57 +79,100 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
       style={style}
       className="space-y-2"
     >
-      <div className="flex items-center gap-3">
-        <Checkbox
-          checked={task.completed}
-          onCheckedChange={(checked) => 
-            onUpdateTask({ ...task, completed: checked as boolean })
-          }
-          id={task.id}
-        />
-        
-        <img 
-          src={pomoStartIcon} 
-          alt="Start Pomodoro" 
-          className="w-4 h-4 cursor-pointer"
-        />
-        
-        <span 
-          className={task.completed ? "line-through text-gray-500" : ""}
-          onClick={handleNoteEdit}
-        >
-          {task.text}
-        </span>
-        
-        <div className="ml-auto flex items-center gap-2">
-          {(task.notes.length > 0 || task.subtasks.length > 0) && (
+      <div>
+        {variant === 'default' ? (
+          <div className="flex items-center gap-3">
+            <Checkbox
+              checked={task.completed}
+              onCheckedChange={(checked) => 
+                onUpdateTask({ ...task, completed: checked as boolean })
+              }
+              id={task.id}
+            />
+            
             <img 
-              src={notesIcon} 
-              alt="Toggle notes" 
+              src={pomoStartIcon} 
+              alt="Start Pomodoro" 
               className="w-4 h-4 cursor-pointer"
-              onClick={toggleNotes}
             />
-          )}
-          
-          <button 
-            onClick={() => onDeleteTask(task.id)}
-            className="p-1 hover:bg-gray-100 rounded-full"
-          >
-            <img 
-              src={trashIcon} 
-              alt="Delete task" 
-              className="w-4 h-4"
-            />
-          </button>
+            
+            <span 
+              className={task.completed ? "line-through text-gray-500" : ""}
+              onClick={handleNoteEdit}
+            >
+              {task.text}
+            </span>
+            
+            <div className="ml-auto flex items-center gap-2">
+              {(task.notes.length > 0 || task.subtasks.length > 0) && (
+                <img 
+                  src={notesIcon} 
+                  alt="Toggle notes" 
+                  className="w-4 h-4 cursor-pointer"
+                  onClick={toggleNotes}
+                />
+              )}
+              
+              <button 
+                onClick={() => onDeleteTask(task.id)}
+                className="p-1 hover:bg-gray-100 rounded-full"
+              >
+                <img 
+                  src={trashIcon} 
+                  alt="Delete task" 
+                  className="w-4 h-4"
+                />
+              </button>
 
-          <div {...attributes} {...listeners}>
-            <img 
-              src={dragHandleIcon} 
-              alt="Drag to reorder" 
-              className="w-4 h-4 cursor-move"
-            />
+              <div {...attributes} {...listeners}>
+                <img 
+                  src={dragHandleIcon} 
+                  alt="Drag to reorder" 
+                  className="w-4 h-4 cursor-move"
+                />
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between px-2 py-1">
+            <div className="flex items-center gap-2">
+              <div {...attributes} {...listeners}>
+                <img 
+                  src={dragHandleIcon} 
+                  alt="Drag to reorder" 
+                  className="w-4 h-4 cursor-move"
+                />
+              </div>
+              <span 
+                className="text-sm cursor-pointer"
+                onClick={handleNoteEdit}
+              >
+                {task.text}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {(task.notes.length > 0 || task.subtasks.length > 0) && (
+                <img 
+                  src={notesIcon} 
+                  alt="Toggle notes" 
+                  className="w-4 h-4 cursor-pointer"
+                  onClick={toggleNotes}
+                />
+              )}
+              <button 
+                onClick={() => onDeleteTask(task.id)}
+                className="p-1 hover:bg-gray-100 rounded-full"
+              >
+                <img 
+                  src={trashIcon} 
+                  alt="Delete task" 
+                  className="w-4 h-4"
+                />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {editingNote === task.id ? (

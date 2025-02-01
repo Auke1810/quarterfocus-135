@@ -1,7 +1,7 @@
 {
   "name": "quarterfocus",
   "private": true,
-  "version": "B.0.2.2",
+  "version": "B.0.2.3",
   "type": "module",
   "scripts": {
     "dev": "vite",

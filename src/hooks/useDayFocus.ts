@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 export const useDayFocus = () => {
@@ -15,6 +15,7 @@ export const useDayFocus = () => {
 
   const fetchDayFocus = async () => {
     try {
+      const { supabase } = useSupabase();
       const { data, error } = await supabase
         .from('user_settings')
         .select('day_focus')
@@ -22,7 +23,7 @@ export const useDayFocus = () => {
         .single();
 
       if (error) throw error;
-      setDayFocus(data?.day_focus || null);
+      setDayFocus((data?.day_focus as string) || null);
     } catch (error) {
       console.error('Error fetching day focus:', error);
     } finally {
@@ -35,6 +36,7 @@ export const useDayFocus = () => {
 
     try {
       // Eerst kijken of er al een instelling bestaat
+      const { supabase } = useSupabase();
       const { data: existingSettings } = await supabase
         .from('user_settings')
         .select()
