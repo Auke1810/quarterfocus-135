@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Task, TaskType, TaskWithParsedInfo, parseTaskInfo } from '@/types/task';
+import { Task, TaskType, TaskWithParsedInfo, parseTaskInfo, TaskStatusId } from '@/types/task';
 import { Input } from "./ui/input";
 import { SortableTaskList } from './SortableTaskList';
 import { Checkbox } from "./ui/checkbox";
@@ -16,7 +16,7 @@ interface TaskSectionProps {
   onUpdateTask: (task: Task) => Promise<void>;
   onDeleteTask: (taskId: string) => Promise<void>;
   updateTaskPositions: (tasks: Task[]) => Promise<void>;
-  maxTasks: number;
+  maxTasks?: number;
 }
 
 const TaskSection: React.FC<TaskSectionProps> = ({
@@ -33,9 +33,11 @@ const TaskSection: React.FC<TaskSectionProps> = ({
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
   
-  const filteredTasks = propTasks
-    .filter(task => task.task_type === type)
-    .map(parseTaskInfo);
+  const filteredTasks = type === 'brain-dump'
+    ? propTasks.map(parseTaskInfo)
+    : propTasks
+      .filter(task => task.task_type === type)
+      .map(parseTaskInfo);
   
   const getSectionTitle = () => {
     switch(type) {
@@ -45,6 +47,8 @@ const TaskSection: React.FC<TaskSectionProps> = ({
         return `Secondary Focus Task (${maxTasks})`;
       case 'small':
         return `the Rest (${maxTasks})`;
+      case 'brain-dump':
+        return 'Brain dump';
     }
   };
 
@@ -109,9 +113,12 @@ const TaskSection: React.FC<TaskSectionProps> = ({
             <div key={task.id} className="space-y-2">
               <div className="flex items-center gap-3">
                 <Checkbox
-                  checked={task.completed}
+                  checked={task.status_id === TaskStatusId.COMPLETED}
                   onCheckedChange={(checked) => 
-                    onUpdateTask({ ...task, completed: checked as boolean })
+                    onUpdateTask({ 
+                      ...task, 
+                      status_id: checked ? TaskStatusId.COMPLETED : TaskStatusId.IN_PROGRESS
+                    })
                   }
                   id={task.id}
                 />
@@ -123,7 +130,7 @@ const TaskSection: React.FC<TaskSectionProps> = ({
                 />
                 
                 <span 
-                  className={task.completed ? "line-through text-gray-500" : ""}
+                  className={task.status_id === TaskStatusId.COMPLETED ? "line-through text-gray-500" : ""}
                   onClick={() => handleNoteEdit(task)}
                 >
                   {task.text}

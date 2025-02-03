@@ -5,11 +5,19 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Handle extensie icon click
 chrome.action.onClicked.addListener(() => {
-  chrome.windows.create({
-    url: 'index.html',
-    type: 'popup',
-    width: 400,
-    height: 600
+  // Get the screen width to position the window on the right
+  chrome.system.display.getInfo((displays) => {
+    const display = displays[0]; // Primary display
+    const left = display.workArea.width - 450; // Window width is 450
+    
+    chrome.windows.create({
+      url: 'index.html',
+      type: 'popup',
+      width: 450,
+      height: 800,
+      left,
+      top: 50 // A bit of padding from the top
+    });
   });
 });
 
@@ -20,8 +28,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     chrome.notifications.create('pomodoroComplete', {
       type: 'basic',
       iconUrl: chrome.runtime.getURL('icons/icon128.png'),
-      title: 'Pomodoro Voltooid!',
-      message: 'Tijd voor een pauze!'
+      title: 'Pomodoro done!',
+      message: 'Well done! Time for a break!'
     });
   }
 });
@@ -29,6 +37,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 // Luister naar berichten van de popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // Hier komt de message handling logica
-  console.log('Bericht ontvangen:', request);
+  console.log('Message received:', request);
   sendResponse({ status: 'OK' });
 });

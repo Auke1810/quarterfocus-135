@@ -1,5 +1,33 @@
 # Database Schema
 
+## Task Status Table
+
+| Column Name   | Data Type                 | Nullable | Default                      | Description |
+|--------------|---------------------------|----------|------------------------------|-------------|
+| id           | smallint                  | NO       | -                           | Primary key |
+| name         | varchar(50)               | NO       | -                           | Status name |
+| description  | text                      | YES      | -                           | Status description |
+| display_order| smallint                  | NO       | -                           | UI display order |
+| is_active    | boolean                   | NO       | true                        | Whether status is active |
+| created_at   | timestamp with time zone  | NO       | now()                       | Creation timestamp |
+| updated_at   | timestamp with time zone  | NO       | now()                       | Last update timestamp |
+
+### Constraints & Details
+- Primary Key: `id`
+- Unique constraint on `name`
+- Triggers:
+  - Automatically updates `updated_at` on changes
+- Predefined statuses:
+  1. In progress (id: 1) - Een actieve geplande taak
+  2. Completed (id: 2) - Deze taak is afgerond
+  3. Open (id: 3) - Deze taak is open voor planning
+  4. Archived (id: 4) - Deze taak is gearchiveerd
+
+### Notes
+- Used to track the different states a task can be in
+- `is_active` allows for soft-deprecation of statuses
+- `display_order` determines the sequence in UI dropdowns
+
 ## Tasks Table
 
 | Column Name   | Data Type                 | Nullable | Default                      | Description |
@@ -7,7 +35,8 @@
 | id           | uuid                      | NO       | uuid_generate_v4()          | Primary key |
 | user_id      | uuid                      | NO       | -                           | Reference to users table |
 | text         | text                      | NO       | -                           | Task description |
-| completed    | boolean                   | YES      | false                       | Task completion status |
+| completed    | boolean                   | YES      | false                       | Legacy completion status (to be removed) |
+| status_id    | smallint                  | YES      | -                           | Reference to task_status table |
 | task_type    | text                      | NO       | -                           | Type of task (big/medium/small) |
 | created_at   | timestamp with time zone  | NO       | timezone('utc'::text, now()) | Creation timestamp |
 | updated_at   | timestamp with time zone  | NO       | timezone('utc'::text, now()) | Last update timestamp |
@@ -19,11 +48,19 @@
 - Primary Key: `id`
 - Foreign Keys:
   - `user_id` references `users` table
-- Indexes: TBD
+  - `status_id` references `task_status` table
+- Indexes:
+  - `idx_tasks_status_id` on `status_id` for better join performance
 - Triggers:
   - Automatically sets `created_at` and `updated_at`
+  - Validates status is active via `check_task_status_active_trigger`
 
 ### Notes
+- `completed` field is maintained temporarily for backward compatibility
+- `status_id` replaces the binary completed state with a more flexible status system
+- RLS policies ensure users can only:
+  - See their own tasks
+  - Create/update tasks with active statuses
 - `info` field is used to store task notes and subtasks
 - `task_type` determines the task category (big/medium/small)
 - `position` is used for ordering tasks within their type

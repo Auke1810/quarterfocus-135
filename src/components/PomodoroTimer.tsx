@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { Card } from "./ui/card";
 import { Play, Pause, RotateCcw, Square } from "lucide-react";
-import { useToast } from "./ui/use-toast";
+import { CustomAlert } from "./ui/CustomAlert";
 import { createPomodoroSession, completePomodoroSession } from "@/lib/api";
 
 interface PomodoroTimerProps {
@@ -23,7 +23,7 @@ const PomodoroTimer = ({
   taskId,
   autoStart = false,
 }: PomodoroTimerProps) => {
-  const { toast } = useToast();
+  const [alert, setAlert] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(workTime * 60);
   const [isRunning, setIsRunning] = useState(autoStart);
   const [progress, setProgress] = useState(100);
@@ -69,7 +69,7 @@ const PomodoroTimer = ({
     breakTime,
     isBreak,
     onTimerComplete,
-    toast,
+    setAlert,
   ]);
 
   const handleTimerComplete = async () => {
@@ -87,18 +87,12 @@ const PomodoroTimer = ({
       setIsBreak(false);
       setTimeLeft(workTime * 60);
       setProgress(100);
-      toast({
-        title: "Break Complete!",
-        description: "Time to get back to work!",
-      });
+      setAlert('Break over! Time to get back to work!');
     } else {
       setIsBreak(true);
       setTimeLeft(breakTime * 60);
       setProgress(100);
-      toast({
-        title: "Work Session Complete!",
-        description: "Time for a break!",
-      });
+      setAlert('Work session complete! Time for a break!');
     }
   };
 
@@ -136,10 +130,7 @@ const PomodoroTimer = ({
     setProgress(100);
     setIsBreak(false);
     onTimerStop();
-    toast({
-      title: "Timer Stopped",
-      description: "Pomodoro session has been stopped",
-    });
+    setAlert('Pomodoro session has been stopped.');
   };
 
   const formatTime = (seconds: number) => {
@@ -150,6 +141,7 @@ const PomodoroTimer = ({
 
   return (
     <Card className="p-6 bg-white w-full max-w-[360px]">
+      {alert && <CustomAlert message={alert} onClose={() => setAlert(null)} />}
       <div className="flex flex-col items-center gap-4">
         <div className="text-4xl font-bold text-primary">
           {formatTime(timeLeft)}

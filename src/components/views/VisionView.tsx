@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { CustomAlert } from '@/components/ui/CustomAlert';
 
 type CoreValueKey = 'core-value-1' | 'core-value-2' | 'core-value-3';
 
@@ -12,7 +12,7 @@ export const VisionView: React.FC = () => {
   const [editingValue, setEditingValue] = useState<CoreValueKey | null>(null);
   const [visionText, setVisionText] = useState(settings?.vision || '');
   const [editValue, setEditValue] = useState('');
-  const { toast } = useToast();
+  const [alert, setAlert] = useState<string | null>(null);
 
   // Update lokale state wanneer settings worden geladen
   React.useEffect(() => {
@@ -25,16 +25,9 @@ export const VisionView: React.FC = () => {
     try {
       await updateVision(visionText);
       setIsEditing(false);
-      toast({
-        title: "Vision opgeslagen",
-        description: "Je visie is succesvol bijgewerkt.",
-      });
+      setAlert('Your vision has been successfully updated.');
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Er ging iets mis bij het opslaan van je visie.",
-        variant: "destructive",
-      });
+      setAlert('Something went wrong while saving your vision.');
     }
   };
 
@@ -49,16 +42,9 @@ export const VisionView: React.FC = () => {
     try {
       await updateCoreValue(editingValue, editValue);
       setEditingValue(null);
-      toast({
-        title: "Core Value opgeslagen",
-        description: "Je kernwaarde is succesvol bijgewerkt.",
-      });
+      setAlert('Your core value has been successfully updated.');
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Er ging iets mis bij het opslaan van je kernwaarde.",
-        variant: "destructive",
-      });
+      setAlert('Something went wrong while saving your core value.');
     }
   };
 
@@ -67,7 +53,7 @@ export const VisionView: React.FC = () => {
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">Vision & Long-term Goals</h1>
         <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-gray-600">Laden...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -75,6 +61,7 @@ export const VisionView: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
+      {alert && <CustomAlert message={alert} onClose={() => setAlert(null)} />}
       <h1 className="text-2xl font-bold mb-4">Vision & Long-term Goals</h1>
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow p-6">
@@ -85,7 +72,7 @@ export const VisionView: React.FC = () => {
                 value={visionText}
                 onChange={(e) => setVisionText(e.target.value)}
                 className="w-full h-64 p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Schrijf hier je visie en lange termijn doelen..."
+                placeholder="Write your vision and long-term goals here..."
               />
               <div className="flex justify-end space-x-2">
                 <Button
@@ -97,7 +84,7 @@ export const VisionView: React.FC = () => {
                 >
                   Annuleren
                 </Button>
-                <Button onClick={handleSave}>Opslaan</Button>
+                <Button onClick={handleSave}>Save</Button>
               </div>
             </div>
           ) : (
@@ -109,7 +96,7 @@ export const VisionView: React.FC = () => {
                 <p className="whitespace-pre-wrap">{visionText}</p>
               ) : (
                 <p className="text-gray-400 italic">
-                  Klik hier om je visie en lange termijn doelen toe te voegen...
+                  Click here to add your vision and long-term goals...
                 </p>
               )}
             </div>
@@ -128,7 +115,7 @@ export const VisionView: React.FC = () => {
                       <Input
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
-                        placeholder={`Voer kernwaarde ${index + 1} in...`}
+                        placeholder={`Enter core value ${index + 1}...`}
                         className="flex-1"
                       />
                     </div>
@@ -141,13 +128,13 @@ export const VisionView: React.FC = () => {
                           setEditValue('');
                         }}
                       >
-                        Annuleren
+                        Cancel
                       </Button>
                       <Button
                         size="sm"
                         onClick={handleSaveValue}
                       >
-                        Opslaan
+                        Save
                       </Button>
                     </div>
                   </div>
@@ -160,7 +147,7 @@ export const VisionView: React.FC = () => {
                     {settings?.[key] ? (
                       <span>{settings[key]}</span>
                     ) : (
-                      <span className="text-gray-400 italic">Klik om kernwaarde toe te voegen...</span>
+                      <span className="text-gray-400 italic">Click to add core value...</span>
                     )}
                   </div>
                 )}

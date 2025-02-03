@@ -91,6 +91,12 @@ export function Menu() {
           >
             This Week
           </MenuItem>
+          <MenuItem 
+            to="/brain-dump"
+            onClick={() => setIsOpen(false)}
+          >
+            Brain dump
+          </MenuItem>
           <Separator className="my-4" />
           <MenuItem 
             to="/quarter-goals"

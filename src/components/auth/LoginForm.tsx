@@ -26,7 +26,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     try {
       if (isSignUp) {
         await signUp(email, password);
-        setSuccess("Registratie succesvol! Check je email om je account te verifiëren.");
+        setSuccess("Registration successful! Check your email to verify your account.");
         // Reset form
         setEmail("");
         setPassword("");

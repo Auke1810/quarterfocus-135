@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { TaskStatusId } from "@/types/task";
 
 export type TaskType = "big" | "medium" | "small";
 
@@ -34,6 +35,7 @@ export async function createTask(text: string, type: TaskType) {
         text,
         task_type: type,
         user_id: user.id,
+        status_id: TaskStatusId.IN_PROGRESS,
       },
     ])
     .select()
@@ -43,7 +45,7 @@ export async function createTask(text: string, type: TaskType) {
   return data;
 }
 
-export async function updateTask(id: string, updates: { completed?: boolean }) {
+export async function updateTask(id: string, updates: { completed?: boolean, status_id?: number }) {
   const { data, error } = await supabase
     .from("tasks")
     .update(updates)

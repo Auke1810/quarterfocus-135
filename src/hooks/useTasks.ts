@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
-import { Task, TaskType, ViewType } from '@/types/task';
+import { Task, TaskType, ViewType, TaskStatusId } from '@/types/task';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { startOfDay, endOfDay, addDays, startOfWeek, endOfWeek } from 'date-fns';
 
@@ -29,6 +29,13 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
         .eq('user_id', user.id)
         .order('position');
 
+      // For brain dump, show open tasks. For other views, show active or completed tasks
+      if (viewType === 'brain-dump') {
+        query = query.eq('status_id', TaskStatusId.OPEN);
+      } else {
+        query = query.in('status_id', [TaskStatusId.IN_PROGRESS, TaskStatusId.COMPLETED]);
+      }
+
       // Add date filters based on viewType
       switch (viewType) {
         case 'focus':
@@ -41,6 +48,11 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
           query = query
             .gte('scheduled_for', startOfDay(tomorrow).toISOString())
             .lte('scheduled_for', endOfDay(tomorrow).toISOString());
+          break;
+        case 'brain-dump':
+          // Brain dump tasks are scheduled far in the future
+          const farFuture = new Date('2099-12-31');
+          query = query.eq('scheduled_for', farFuture.toISOString());
           break;
         case 'week':
           // For week view, we want to include today and the next 6 days
@@ -97,11 +109,11 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
       const newTask = {
         text,
         task_type,
-        completed: false,
+        status_id: viewType === 'brain-dump' ? TaskStatusId.OPEN : TaskStatusId.IN_PROGRESS,
         info: '',
         position,
         user_id: user.id,
-        scheduled_for: getScheduledFor(date).toISOString()
+        scheduled_for: viewType === 'brain-dump' ? new Date('2099-12-31').toISOString() : getScheduledFor(date).toISOString()
       };
 
       const { data, error } = await supabase
@@ -122,7 +134,7 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
           typeof taskData.id === 'string' &&
           typeof taskData.text === 'string' &&
           typeof taskData.task_type === 'string' &&
-          typeof taskData.completed === 'boolean' &&
+          typeof taskData.status_id === 'number' &&
           typeof taskData.scheduled_for === 'string' &&
           typeof taskData.user_id === 'string' &&
           typeof taskData.created_at === 'string' &&
@@ -133,7 +145,7 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
             id: taskData.id,
             text: taskData.text,
             task_type: taskData.task_type,
-            completed: taskData.completed,
+            status_id: taskData.status_id,
             scheduled_for: taskData.scheduled_for,
             user_id: taskData.user_id,
             created_at: taskData.created_at,
@@ -155,14 +167,14 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
     }
   };
 
-  const toggleTaskCompletion = async (taskId: string, completed: boolean) => {
+  const toggleTaskCompletion = async (taskId: string, status_id: number) => {
     if (!user) return;
 
     try {
       const { error } = await supabase
         .from('tasks')
         .update({
-          completed,
+          status_id,
           updated_at: new Date().toISOString()
         })
         .eq('id', taskId)
@@ -175,7 +187,7 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
 
       // Update local state
       setTasks(prev => 
-        prev.map(t => t.id === taskId ? { ...t, completed, updated_at: new Date().toISOString() } : t)
+        prev.map(t => t.id === taskId ? { ...t, status_id, updated_at: new Date().toISOString() } : t)
       );
     } catch (error) {
       console.error('Error updating task completion:', error);
@@ -192,20 +204,20 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
       // Als alleen completed wordt gewijzigd, gebruik dan toggleTaskCompletion
       const existingTask = tasks.find(t => t.id === task.id);
       if (existingTask && 
-          existingTask.completed !== task.completed && 
+          existingTask.status_id !== task.status_id && 
           existingTask.text === task.text &&
           existingTask.task_type === task.task_type &&
           existingTask.scheduled_for === task.scheduled_for &&
           existingTask.info === task.info &&
           existingTask.position === task.position) {
-        return toggleTaskCompletion(task.id, task.completed);
+        return toggleTaskCompletion(task.id, task.status_id);
       }
 
-      const updatedTask = {
+      const updatedTask: Task = {
         id: task.id,
         text: task.text,
         task_type: task.task_type,
-        completed: task.completed,
+        status_id: task.status_id,
         scheduled_for: task.scheduled_for || getScheduledFor().toISOString(),
         info: task.info || '',
         position: task.position,
@@ -214,9 +226,12 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
         updated_at: new Date().toISOString()
       };
 
+      // Extract only the fields we want to update
+      const { id: _, user_id: __, created_at: ___, ...updateFields } = updatedTask;
+
       const { error } = await supabase
         .from('tasks')
-        .update(updatedTask)
+        .update(updateFields)
         .eq('id', task.id)
         .eq('user_id', user.id);
 
@@ -225,10 +240,16 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
         throw error;
       }
 
-      // Update local state with the same task data
-      setTasks(prev => 
-        prev.map(t => t.id === task.id ? updatedTask : t)
-      );
+      // Update local state
+      setTasks(prevTasks => {
+        // Als de status is veranderd naar IN_PROGRESS (1) en we zijn in brain-dump view,
+        // dan filteren we de taak eruit
+        if (task.status_id === 1 && viewType === 'brain-dump') {
+          return prevTasks.filter(t => t.id !== task.id);
+        }
+        // Anders updaten we de taak
+        return prevTasks.map(t => t.id === task.id ? updatedTask : t);
+      });
     } catch (error) {
       console.error('Error updating task:', error);
       if (error instanceof Error) {
@@ -248,7 +269,7 @@ export const useTasks = ({ viewType }: UseTasksProps) => {
       const tasksToUpdate = updatedTasks.map(task => ({
         id: task.id,
         text: task.text,
-        completed: task.completed,
+        status_id: task.status_id,
         info: task.info,
         task_type: task.task_type,
         position: task.position,

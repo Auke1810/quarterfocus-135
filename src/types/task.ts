@@ -1,11 +1,28 @@
-export type TaskType = 'big' | 'medium' | 'small';
-export type ViewType = 'focus' | 'tomorrow' | 'week';
+export type TaskType = 'big' | 'medium' | 'small' | 'brain-dump';
+export type ViewType = 'focus' | 'tomorrow' | 'week' | 'brain-dump';
+
+export interface TaskStatus {
+  id: number;
+  name: string;
+  description: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const TaskStatusId = {
+  IN_PROGRESS: 1,
+  COMPLETED: 2,
+  OPEN: 3,
+  ARCHIVED: 4,
+} as const;
 
 export interface Task {
   id: string;
   text: string;
   task_type: TaskType;
-  completed: boolean;
+  status_id: number;
   scheduled_for: string;
   info?: string;
   position?: number;

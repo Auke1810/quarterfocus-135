@@ -4,6 +4,7 @@ import { Root } from './Root';
 import { QuarterGoalsView } from '@/components/views/QuarterGoalsView';
 import { VisionView } from '@/components/views/VisionView';
 import { ReviewView } from '@/components/views/ReviewView';
+import { BrainDumpView } from '@/components/views/BrainDumpView';
 
 const routes = [
   {
@@ -21,6 +22,10 @@ const routes = [
       {
         path: '/week',
         element: <TaskView viewType="week" />,
+      },
+      {
+        path: '/brain-dump',
+        element: <BrainDumpView />,
       },
       {
         path: '/quarter-goals',

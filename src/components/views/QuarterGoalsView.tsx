@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useGoals } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { CustomAlert } from '@/components/ui/CustomAlert';
 import { Goal } from '@/types/goals';
+import { TaskStatusId } from '@/types/task';
 import { format, parse } from 'date-fns';
 
 const MAX_YEAR_GOALS = 3;
@@ -11,17 +12,17 @@ const MAX_QUARTERLY_GOALS = 1;
 
 export const QuarterGoalsView: React.FC = () => {
   const { goals, loading, addGoal, updateGoal } = useGoals();
-  const [editingGoal, setEditingGoal] = useState<string | null>(null);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
-  const { toast } = useToast();
+  const [alert, setAlert] = useState<string | null>(null);
 
   const yearGoals = goals.filter(goal => goal.goal_type.name === 'year');
   const quarterlyGoals = goals.filter(goal => goal.goal_type.name === 'quarterly');
 
   const handleEditGoal = (goal: Goal) => {
-    setEditingGoal(goal.id);
+    setEditingGoal(goal);
     setEditTitle(goal.title);
     setEditDescription(goal.description || '');
     setEditDueDate(format(new Date(goal.end_date), 'yyyy-MM-dd'));
@@ -31,10 +32,11 @@ export const QuarterGoalsView: React.FC = () => {
     if (!editingGoal) return;
 
     try {
-      await updateGoal(editingGoal, {
+      await updateGoal(editingGoal.id, {
         title: editTitle,
         description: editDescription,
         end_date: new Date(editDueDate).toISOString(),
+        status_id: editingGoal.status_id
       });
 
       setEditingGoal(null);
@@ -42,36 +44,21 @@ export const QuarterGoalsView: React.FC = () => {
       setEditDescription('');
       setEditDueDate('');
 
-      toast({
-        title: "Goal saved",
-        description: "Your goal has been updated successfully.",
-      });
+      setAlert('Goal successfully saved.');
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong while saving your goal.",
-        variant: "destructive",
-      });
+      setAlert('Something went wrong while saving your goal.');
     }
   };
 
   const handleAddGoal = async (goalTypeId: number) => {
     try {
       if (goalTypeId === 1 && yearGoals.length >= MAX_YEAR_GOALS) {
-        toast({
-          title: "Maximum goals reached",
-          description: "You can only have up to 3 year goals.",
-          variant: "destructive",
-        });
+        setAlert('Je kunt maximaal 3 jaar goals hebben.');
         return;
       }
 
       if (goalTypeId === 2 && quarterlyGoals.length >= MAX_QUARTERLY_GOALS) {
-        toast({
-          title: "Maximum milestones reached",
-          description: "You can only have 1 quarterly milestone.",
-          variant: "destructive",
-        });
+        setAlert('Je kunt maximaal 1 kwartaal milestone hebben.');
         return;
       }
 
@@ -92,19 +79,12 @@ export const QuarterGoalsView: React.FC = () => {
         description: "",
         start_date: now.toISOString(),
         end_date: endDate.toISOString(),
-        completed: false
+        status_id: TaskStatusId.IN_PROGRESS
       });
 
-      toast({
-        title: "Goal created",
-        description: "You can now edit your goal.",
-      });
+      setAlert('Goal aangemaakt. Je kunt deze nu bewerken.');
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong while creating your goal.",
-        variant: "destructive",
-      });
+      setAlert('Er is iets misgegaan bij het aanmaken van je goal.');
     }
   };
 
@@ -195,13 +175,14 @@ export const QuarterGoalsView: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
+      {alert && <CustomAlert message={alert} onClose={() => setAlert(null)} />}
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Year Goals</h2>
           <div className="space-y-4">
             {yearGoals.map((goal, index) => (
               <div key={goal.id} className="group">
-                {editingGoal === goal.id ? (
+                {editingGoal?.id === goal.id ? (
                   renderGoalEditor(goal, index, true)
                 ) : (
                   renderGoalDisplay(goal, index)
@@ -226,7 +207,7 @@ export const QuarterGoalsView: React.FC = () => {
           <div className="space-y-4">
             {quarterlyGoals.map((goal, index) => (
               <div key={goal.id} className="group">
-                {editingGoal === goal.id ? (
+                {editingGoal?.id === goal.id ? (
                   renderGoalEditor(goal, index, false)
                 ) : (
                   renderGoalDisplay(goal, index)

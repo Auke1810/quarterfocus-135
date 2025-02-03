@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task, TaskWithParsedInfo } from '@/types/task';
+import { Task, TaskWithParsedInfo, TaskStatusId } from '@/types/task';
 import { Checkbox } from './ui/checkbox';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
@@ -83,9 +83,12 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
         {variant === 'default' ? (
           <div className="flex items-center gap-3">
             <Checkbox
-              checked={task.completed}
+              checked={task.status_id === TaskStatusId.COMPLETED}
               onCheckedChange={(checked) => 
-                onUpdateTask({ ...task, completed: checked as boolean })
+                onUpdateTask({
+                  ...task,
+                  status_id: checked ? TaskStatusId.COMPLETED : TaskStatusId.IN_PROGRESS
+                })
               }
               id={task.id}
             />
@@ -97,7 +100,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
             />
             
             <span 
-              className={task.completed ? "line-through text-gray-500" : ""}
+              className={task.status_id === TaskStatusId.COMPLETED ? "line-through text-gray-500" : ""}
               onClick={handleNoteEdit}
             >
               {task.text}
@@ -144,7 +147,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
                 />
               </div>
               <span 
-                className="text-sm cursor-pointer"
+                className={`text-sm cursor-pointer ${task.status_id === TaskStatusId.COMPLETED ? "line-through text-gray-500" : ""}`}
                 onClick={handleNoteEdit}
               >
                 {task.text}
