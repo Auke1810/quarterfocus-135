@@ -26,21 +26,21 @@ export const ReviewTaskItem: React.FC<ReviewTaskItemProps> = ({ task, onArchive,
             <button
               onClick={() => setShowNotes(!showNotes)}
               className="p-1 hover:bg-gray-100 rounded"
-              title="Bekijk notities"
+              title="View notes"
             >
               <img src={notesIcon} alt="Notes" className="w-4 h-4" />
             </button>
           )}
           <button
             className="p-1 hover:bg-gray-100 rounded"
-            title="Dupliceer taak"
+            title="Duplicate task"
             onClick={() => onDuplicate(task)}
           >
             <img src={duplicateIcon} alt="Duplicate" className="w-4 h-4" />
           </button>
           <button
             className="p-1 hover:bg-gray-100 rounded"
-            title="Archiveer taak"
+            title="Archive task"
             onClick={() => onArchive(task.id)}
           >
             <img src={archiveIcon} alt="Archive" className="w-4 h-4" />

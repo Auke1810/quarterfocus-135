@@ -27,25 +27,27 @@ export const BrainDumpView: React.FC = () => {
       <div>
         <h1 className="text-2xl font-bold mb-2">Brain dump</h1>
         <p className="text-muted-foreground mb-4">
-          Dump je gedachten en taken hier. Deze taken worden niet ingepland maar kunnen later worden toegewezen aan specifieke periodes.
+          Dump your thoughts and tasks here. These tasks won't be scheduled but can be assigned to specific periods later.
         </p>
         <form onSubmit={handleAddTask} className="flex gap-2 mb-6">
           <Input
             type="text"
-            placeholder="Voeg een nieuwe taak toe..."
+            placeholder="Add a new task..."
             value={newTaskText}
             onChange={(e) => setNewTaskText(e.target.value)}
             className="flex-1"
           />
-          <Button type="submit">Toevoegen</Button>
+          <Button type="submit">Add</Button>
         </form>
       </div>
 
-      <BrainDumpTaskList
-        tasks={tasks}
-        onUpdateTask={updateTask}
-        onDeleteTask={deleteTask}
-      />
+      <div className="bg-white rounded-lg p-4 shadow-sm">
+        <BrainDumpTaskList
+          tasks={tasks}
+          onUpdateTask={updateTask}
+          onDeleteTask={deleteTask}
+        />
+      </div>
     </div>
   );
 };

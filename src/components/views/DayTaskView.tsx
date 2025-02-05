@@ -6,6 +6,14 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { SortableTaskItem } from '../SortableTaskItem';
+import infoIcon from '@/assets/info.svg';
+import infoFocusIcon from '@/assets/info-focus.svg';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DayTaskViewProps {
   dayIndex: number;
@@ -43,7 +51,33 @@ const TaskContainer: React.FC<TaskContainerProps> = ({
       className="bg-gray-50 p-2 rounded-lg transition-colors"
       style={{ minHeight: '4rem' }}
     >
-      <div className="text-xs font-medium text-gray-500 mb-2">{title} (max {maxTasks})</div>
+      <div className="flex justify-between items-center text-xs font-medium text-gray-500 mb-2">
+        <span>{title} (max {maxTasks})</span>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <img
+                src={infoIcon}
+                alt="Info"
+                onMouseEnter={(e) => e.currentTarget.src = infoFocusIcon}
+                onMouseLeave={(e) => e.currentTarget.src = infoIcon}
+                className="w-4 h-4 cursor-help"
+              />
+            </TooltipTrigger>
+            <TooltipContent side="left" className="max-w-xs">
+              {title === "Key Focus task" && (
+                <p>This is your most important task for today. Focus on completing this before moving on to other tasks.</p>
+              )}
+              {title === "Secondary Focus tasks" && (
+                <p>These are your secondary tasks. Start working on these after completing your Key Focus task.</p>
+              )}
+              {title === "the Rest tasks" && (
+                <p>These tasks can be picked up if there's time left, or delegated/planned for another day.</p>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
       <SortableContext items={tasks} strategy={verticalListSortingStrategy}>
         {tasks.map(task => (
           <SortableTaskItem
@@ -103,7 +137,7 @@ export const DayTaskView: React.FC<DayTaskViewProps> = ({
             value={newTaskText}
             onChange={(e) => setNewTaskText(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="+ Voeg een taak toe"
+            placeholder="+ Add a task"
             className="w-full p-2 text-gray-700 bg-white hover:bg-gray-50 rounded-lg text-sm border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           />
         </div>

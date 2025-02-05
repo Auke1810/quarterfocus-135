@@ -1,7 +1,7 @@
 import React from 'react';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Task, TaskWithParsedInfo, parseTaskInfo } from '@/types/task';
+import { Task, TaskWithParsedInfo, parseTaskInfo, ViewType } from '@/types/task';
 import { SortableTaskItem } from './SortableTaskItem';
 
 interface SortableTaskListProps {
@@ -9,6 +9,7 @@ interface SortableTaskListProps {
   onTasksReorder: (tasks: Task[]) => Promise<void>;
   onUpdateTask: (task: Task) => Promise<void>;
   onDeleteTask: (taskId: string) => Promise<void>;
+  viewType?: ViewType;
 }
 
 export const SortableTaskList: React.FC<SortableTaskListProps> = ({
@@ -16,6 +17,7 @@ export const SortableTaskList: React.FC<SortableTaskListProps> = ({
   onTasksReorder,
   onUpdateTask,
   onDeleteTask,
+  viewType = 'focus',
 }) => {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -52,6 +54,7 @@ export const SortableTaskList: React.FC<SortableTaskListProps> = ({
               task={task}
               onUpdateTask={onUpdateTask}
               onDeleteTask={onDeleteTask}
+              viewType={viewType}
             />
           ))}
         </div>

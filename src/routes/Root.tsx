@@ -1,7 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Menu } from '@/components/Menu';
-import { LoginButton } from '@/components/auth/LoginButton';
+import { Header } from '@/components/Header';
 import { useScreenSize } from '@/hooks/useScreenSize';
 
 export const Root = () => {
@@ -16,10 +15,7 @@ export const Root = () => {
         transition: 'width 0.2s, height 0.2s'
       }}
     >
-      <header className="px-4 py-2 border-b flex justify-between items-center shrink-0">
-        <Menu />
-        <LoginButton />
-      </header>
+      <Header />
       
       <main className="flex-1 overflow-y-auto p-4">
         <Outlet />

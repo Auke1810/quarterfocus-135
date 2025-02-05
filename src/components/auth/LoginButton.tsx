@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 import { LoginForm } from "./LoginForm";
+import { UserPreferences } from "@/components/UserPreferences";
 import {
   Dialog,
   DialogContent,
@@ -18,14 +19,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import profileIcon from "@/assets/profile.svg";
+import { syncAll } from "@/lib/sync";
 
 export function LoginButton() {
   const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
 
-  const handleSync = () => {
-    // TODO: Implementeer echte synchronisatie
-    toast.success("Synchronisatie gestart");
+  const handleSync = async () => {
+    toast.loading("Synchronizing...");
+    await syncAll();
   };
 
   return (
@@ -39,14 +42,14 @@ export function LoginButton() {
         <DropdownMenuContent align="end" className="w-48">
           {user ? (
             <>
-              <DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setPreferencesOpen(true)}>
                 Preferences
               </DropdownMenuItem>
               <DropdownMenuItem>
                 My Account
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSync}>
-                Nu synchroniseren
+                Sync now
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut}>
@@ -72,6 +75,11 @@ export function LoginButton() {
           <LoginForm onSuccess={() => setOpen(false)} />
         </DialogContent>
       </Dialog>
+
+      <UserPreferences
+        open={preferencesOpen}
+        onOpenChange={setPreferencesOpen}
+      />
     </>
   );
 }

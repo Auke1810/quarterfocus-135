@@ -83,7 +83,7 @@ export const BrainDumpTaskList: React.FC<BrainDumpTaskListProps> = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-0">
       {tasks.map(parseTaskInfo).map((task) => (
         <div key={task.id} className="group">
           <div 

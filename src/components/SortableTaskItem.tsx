@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task, TaskWithParsedInfo, TaskStatusId } from '@/types/task';
+import { Task, TaskWithParsedInfo, TaskStatusId, ViewType } from '@/types/task';
+import { getTaskPomodoroCount } from '@/lib/api';
 import { Checkbox } from './ui/checkbox';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
+import { PomodoroOverlay } from './PomodoroOverlay';
 import pomoStartIcon from '@/assets/pomostart.svg';
 import notesIcon from '@/assets/notes.svg';
 import trashIcon from '@/assets/Trash.svg';
@@ -15,17 +17,34 @@ interface SortableTaskItemProps {
   onUpdateTask: (task: Task) => Promise<void>;
   onDeleteTask: (taskId: string) => Promise<void>;
   variant?: 'default' | 'week';
+  viewType?: ViewType;
 }
 
 export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   task,
   onUpdateTask,
   onDeleteTask,
-  variant = 'default'
+  variant = 'default',
+  viewType = 'focus'
 }) => {
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
+  const [isPomodoroOpen, setIsPomodoroOpen] = useState(false);
+  const [pomodoroCount, setPomodoroCount] = useState(0);
+
+  useEffect(() => {
+    const loadPomodoroCount = async () => {
+      try {
+        const count = await getTaskPomodoroCount(task.id);
+        setPomodoroCount(count);
+      } catch (error) {
+        console.error('Error loading pomodoro count:', error);
+      }
+    };
+
+    loadPomodoroCount();
+  }, [task.id]);
 
   const {
     attributes,
@@ -93,11 +112,22 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
               id={task.id}
             />
             
-            <img 
-              src={pomoStartIcon} 
-              alt="Start Pomodoro" 
-              className="w-4 h-4 cursor-pointer"
-            />
+            {viewType === 'focus' && (
+              <>
+                <img 
+                  src={pomoStartIcon} 
+                  alt="Start Pomodoro" 
+                  className="w-4 h-4 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setIsPomodoroOpen(true)}
+                />
+                
+                <PomodoroOverlay
+                  isOpen={isPomodoroOpen}
+                  onClose={() => setIsPomodoroOpen(false)}
+                  taskId={task.id}
+                />
+              </>
+            )}
             
             <span 
               className={task.status_id === TaskStatusId.COMPLETED ? "line-through text-gray-500" : ""}
@@ -150,7 +180,14 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
                 className={`text-sm cursor-pointer ${task.status_id === TaskStatusId.COMPLETED ? "line-through text-gray-500" : ""}`}
                 onClick={handleNoteEdit}
               >
-                {task.text}
+                <span className="flex items-center">
+                  {task.text}
+                  {pomodoroCount > 0 && (
+                    <span className="ml-2 text-sm text-gray-500">
+                      ({pomodoroCount} 🍅)
+                    </span>
+                  )}
+                </span>
               </span>
             </div>
             
@@ -181,12 +218,12 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
       {editingNote === task.id ? (
         <div className="ml-8 space-y-2">
           <div className="text-sm text-gray-500 mb-2">
-            Tip: Begin een regel met "-" voor een subtaak
+            Tip: Start a line with "-" for a subtask
           </div>
           <Textarea
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
-            placeholder="Voeg notities of subtaken toe"
+            placeholder="Add notes or subtasks"
             className="min-h-[100px]"
           />
           <div className="flex gap-2">

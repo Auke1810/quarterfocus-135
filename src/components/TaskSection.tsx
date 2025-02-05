@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Task, TaskType, TaskWithParsedInfo, parseTaskInfo, TaskStatusId } from '@/types/task';
+import { PomodoroOverlay } from './PomodoroOverlay';
+import { Task, TaskType, TaskWithParsedInfo, parseTaskInfo, TaskStatusId, ViewType } from '@/types/task';
 import { Input } from "./ui/input";
 import { SortableTaskList } from './SortableTaskList';
 import { Checkbox } from "./ui/checkbox";
@@ -17,6 +18,8 @@ interface TaskSectionProps {
   onDeleteTask: (taskId: string) => Promise<void>;
   updateTaskPositions: (tasks: Task[]) => Promise<void>;
   maxTasks?: number;
+  viewType?: ViewType;
+  onTimerComplete?: () => void;
 }
 
 const TaskSection: React.FC<TaskSectionProps> = ({
@@ -27,11 +30,15 @@ const TaskSection: React.FC<TaskSectionProps> = ({
   onDeleteTask,
   updateTaskPositions,
   maxTasks,
+  viewType = 'focus',
+  onTimerComplete,
 }) => {
   const [newTask, setNewTask] = useState("");
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
+  const [isPomodoroOpen, setIsPomodoroOpen] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   
   const filteredTasks = type === 'brain-dump'
     ? propTasks.map(parseTaskInfo)
@@ -103,7 +110,7 @@ const TaskSection: React.FC<TaskSectionProps> = ({
   };
 
   return (
-    <div className="space-y-4 p-4 rounded-lg border border-gray-200">
+    <div className="space-y-4 p-4 rounded-lg border border-gray-200 bg-white">
       <h3 className="text-lg font-semibold">{getSectionTitle()}</h3>
 
       {type === 'big' ? (
@@ -123,11 +130,29 @@ const TaskSection: React.FC<TaskSectionProps> = ({
                   id={task.id}
                 />
                 
-                <img 
-                  src={pomoStartIcon} 
-                  alt="Start Pomodoro" 
-                  className="w-4 h-4 cursor-pointer"
-                />
+                {viewType === 'focus' && (
+                  <>
+                    <img 
+                      src={pomoStartIcon} 
+                      alt="Start Pomodoro" 
+                      className="w-4 h-4 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => {
+                        setActiveTaskId(task.id);
+                        setIsPomodoroOpen(true);
+                      }}
+                    />
+                    
+                    <PomodoroOverlay
+                      isOpen={isPomodoroOpen && activeTaskId === task.id}
+                      onClose={() => {
+                        setIsPomodoroOpen(false);
+                        setActiveTaskId(null);
+                      }}
+                      taskId={task.id}
+                      onTimerComplete={onTimerComplete}
+                    />
+                  </>
+                )}
                 
                 <span 
                   className={task.status_id === TaskStatusId.COMPLETED ? "line-through text-gray-500" : ""}
@@ -167,7 +192,7 @@ const TaskSection: React.FC<TaskSectionProps> = ({
                   <Textarea
                     value={noteText}
                     onChange={(e) => setNoteText(e.target.value)}
-                    placeholder="Voeg notities of subtaken toe"
+                    placeholder="Add notes or subtasks"
                     className="min-h-[100px]"
                   />
                   <div className="flex gap-2">
@@ -211,6 +236,7 @@ const TaskSection: React.FC<TaskSectionProps> = ({
           onTasksReorder={handleTasksReorder}
           onUpdateTask={onUpdateTask}
           onDeleteTask={onDeleteTask}
+          viewType={viewType}
         />
       )}
 

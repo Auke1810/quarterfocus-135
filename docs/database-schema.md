@@ -68,19 +68,25 @@
 
 ## User Settings Table
 
-| Column Name    | Data Type                 | Nullable | Default                      | Description |
-|---------------|---------------------------|----------|------------------------------|-------------|
-| id            | uuid                      | NO       | uuid_generate_v4()          | Primary key |
-| user_id       | uuid                      | NO       | -                           | Reference to users table |
-| day_focus     | text                      | YES      | -                           | Focus text for today |
-| tomorrow_focus| text                      | YES      | -                           | Focus text for tomorrow |
-| week_focus    | text                      | YES      | -                           | Focus text for the week |
-| created_at    | timestamp with time zone  | NO       | timezone('utc'::text, now()) | Creation timestamp |
-| updated_at    | timestamp with time zone  | NO       | timezone('utc'::text, now()) | Last update timestamp |
-| vision        | text                      | YES      | -                           | Long term vision of the user |
-| core-value-1  | text                      | YES      | -                           | First core value of the user |
-| core-value-2  | text                      | YES      | -                           | Second core value of the user |
-| core-value-3  | text                      | YES      | -                           | Third core value of the user |
+| Column Name           | Data Type                 | Nullable | Default                      | Description |
+|----------------------|---------------------------|----------|------------------------------|-------------|
+| id                   | uuid                      | NO       | uuid_generate_v4()          | Primary key |
+| user_id              | uuid                      | NO       | -                           | Reference to users table |
+| day_focus            | text                      | YES      | -                           | Focus text for today |
+| tomorrow_focus       | text                      | YES      | -                           | Focus text for tomorrow |
+| week_focus           | text                      | YES      | -                           | Focus text for the week |
+| created_at           | timestamp with time zone  | NO       | timezone('utc'::text, now()) | Creation timestamp |
+| updated_at           | timestamp with time zone  | NO       | timezone('utc'::text, now()) | Last update timestamp |
+| vision               | text                      | YES      | -                           | Long term vision of the user |
+| core_value_1         | text                      | YES      | -                           | First core value of the user |
+| core_value_2         | text                      | YES      | -                           | Second core value of the user |
+| core_value_3         | text                      | YES      | -                           | Third core value of the user |
+| pomodoro_duration    | integer                   | NO       | 25                          | Duration of pomodoro sessions in minutes |
+| short_break_duration | integer                   | NO       | 5                           | Duration of short breaks in minutes |
+| long_break_duration  | integer                   | NO       | 15                          | Duration of long breaks in minutes |
+| auto_start_breaks    | boolean                   | NO       | false                       | Whether breaks start automatically |
+| auto_start_pomodoros | boolean                   | NO       | false                       | Whether pomodoros start automatically |
+| last_synced_at       | timestamp with time zone  | YES      | -                           | Last successful sync timestamp |
 
 ### Constraints & Details
 - Primary Key: `id`
@@ -93,6 +99,9 @@
 - Each user has one settings record
 - Focus texts are used to display the user's focus/intention for different time periods
 - All timestamps are stored in UTC
+- Pomodoro settings are synced between devices via chrome.storage
+- Timer settings have defaults that can be overridden per user
+- `last_synced_at` helps track sync status and resolve conflicts
 
 ## Goal Types Table
 
@@ -169,6 +178,13 @@ All tables have Row Level Security enabled with the following policies:
 - Users can only add their own data (INSERT)
 - Users can only update their own data (UPDATE)
 - Users can only delete their own data (DELETE)
+
+### Synchronization Security
+- All sync operations require valid user authentication
+- Chrome storage is used as primary data source for fast access
+- Database acts as secure backup and cross-device sync source
+- Sync conflicts are resolved using timestamp-based strategy
+- Manual sync option available through UI for user control
 
 ## Indexes
 

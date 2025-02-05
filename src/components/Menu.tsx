@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useScreenSize } from '@/hooks/useScreenSize';
 import menuIcon from "@/assets/menu.svg";
 import menuFocusIcon from "@/assets/menu-focus.svg";
 import qfLogo from "@/assets/qflogo.svg";
@@ -39,6 +40,12 @@ const MenuItem = ({ to, icon, children, separator, onClick }: MenuItemProps) => 
 export function Menu() {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const { width } = useScreenSize();
+
+  // Automatisch uitklappen bij breed scherm (800px is twee keer de standaard breedte)
+  useEffect(() => {
+    setIsOpen(width >= 800);
+  }, [width]);
 
   return (
     <>
@@ -57,12 +64,10 @@ export function Menu() {
       </button>
 
       {/* Slide-out Menu */}
-      <div
-        className={cn(
-          'fixed top-0 left-0 h-full w-64 bg-background border-r transform transition-transform duration-300 ease-in-out z-20',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        )}
-      >
+      {isOpen && (
+        <div
+          className="fixed top-0 left-0 h-full w-64 bg-white border-r transform transition-all duration-300 ease-in-out z-20"
+        >
         {/* Menu Header */}
         <div className="px-4 py-2 border-b flex items-center gap-2">
           <img src={qfLogo} alt="Quarter Focus Logo" className="h-6 w-6" />
@@ -91,12 +96,6 @@ export function Menu() {
           >
             This Week
           </MenuItem>
-          <MenuItem 
-            to="/brain-dump"
-            onClick={() => setIsOpen(false)}
-          >
-            Brain dump
-          </MenuItem>
           <Separator className="my-4" />
           <MenuItem 
             to="/quarter-goals"
@@ -112,6 +111,13 @@ export function Menu() {
           </MenuItem>
           <Separator className="my-4" />
           <MenuItem 
+            to="/brain-dump"
+            onClick={() => setIsOpen(false)}
+          >
+            Brain Dump
+          </MenuItem>
+          <Separator className="my-4" />
+          <MenuItem 
             to="/review"
             onClick={() => setIsOpen(false)}
           >
@@ -119,6 +125,7 @@ export function Menu() {
           </MenuItem>
         </nav>
       </div>
+      )}
 
       {/* Overlay when menu is open */}
       {isOpen && (
