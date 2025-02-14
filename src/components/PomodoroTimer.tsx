@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { Card } from "./ui/card";
-import { Play, Pause, RotateCcw, Square } from "lucide-react";
+import { Play, Pause, RotateCcw, Square, Minimize2, Maximize2 } from "lucide-react";
 import { CustomAlert } from "./ui/CustomAlert";
-import { createPomodoroSession, completePomodoroSession, getUserPreferences } from "@/lib/api";
+import { createPomodoroSession, completePomodoroSession, getUserPreferences, getTaskInfo } from "@/lib/api";
+import { Task } from "@/types/task";
+import { cn } from "@/lib/utils";
 
 interface PomodoroTimerProps {
   workTime?: number;
@@ -161,33 +163,41 @@ const PomodoroTimer = ({
   }, []);
 
   const handleTimerComplete = async () => {
+    // First handle session completion if needed
     if (currentSessionId) {
       try {
         await completePomodoroSession(currentSessionId, workTime);
+        setCurrentSessionId(null); // Clear the session ID after completion
       } catch (error) {
         console.error("Error completing pomodoro session:", error);
       }
     }
 
+    // Notify parent component
     onTimerComplete();
 
-    if (isBreak) {
-      // After break, prepare for focus time but don't auto-start
-      setIsBreak(false);
-      setTimeLeft(workTime * 60);
-      setProgress(100);
-      setIsRunning(false);
-      setAlert('Break complete! Click play to start your next focus session.');
-      playNotificationSound(true);
-    } else {
-      // After focus time, auto-start break
-      setIsBreak(true);
-      setTimeLeft(breakTime * 60);
-      setProgress(100);
-      setIsRunning(true);
-      setAlert('Focus session complete! Break started automatically.');
-      playNotificationSound(false);
-    }
+    // Stop the current timer
+    setIsRunning(false);
+
+    // Use a small delay to ensure state updates are processed
+    setTimeout(() => {
+      if (isBreak) {
+        // After break, prepare for focus time but don't auto-start
+        setIsBreak(false);
+        setTimeLeft(workTime * 60);
+        setProgress(100);
+        setAlert('Break complete! Click play to start your next focus session.');
+        playNotificationSound(true);
+      } else {
+        // After focus time, auto-start break
+        setIsBreak(true);
+        setTimeLeft(breakTime * 60);
+        setProgress(100);
+        setIsRunning(true); // Auto-start break timer
+        setAlert('Focus session complete! Break started automatically.');
+        playNotificationSound(false);
+      }
+    }, 100); // Small delay to ensure clean state transition
   };
 
   const toggleTimer = async () => {
@@ -247,41 +257,103 @@ const PomodoroTimer = ({
     onTimerStop();
   };
 
+  const [taskInfo, setTaskInfo] = useState<Task | null>(null);
+  const [isCompact, setIsCompact] = useState(false);
+
+  // Load task information when taskId changes
+  useEffect(() => {
+    if (taskId) {
+      getTaskInfo(taskId)
+        .then((task) => {
+          setTaskInfo(task);
+        })
+        .catch((error) => {
+          console.error("Error fetching task info:", error);
+        });
+    }
+  }, [taskId]);
+
+  const toggleCompactMode = () => {
+    setIsCompact(!isCompact);
+  };
+
+  if (isCompact) {
+    return (
+      <div 
+        className="fixed bottom-4 right-4 flex items-center gap-2 bg-white rounded-lg p-3 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-200 cursor-pointer z-50"
+        onClick={toggleCompactMode}
+      >
+        <div className="text-2xl font-bold text-gray-900">
+          {formatTime(timeLeft)}
+        </div>
+        <div 
+          className="h-2 w-2 rounded-full animate-pulse" 
+          style={{ backgroundColor: isRunning ? (isBreak ? '#10B981' : '#3B82F6') : '#6B7280' }} 
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center gap-6 bg-white rounded-xl p-8 min-w-[300px] shadow-lg">
-      {alert && <CustomAlert message={alert} onClose={() => setAlert(null)} />}
-      <div className="text-5xl font-bold text-gray-900">
-        {formatTime(timeLeft)}
-      </div>
-      <div className="text-xl text-gray-600">
-        {isBreak ? 'Break Time' : 'Focus Time'}
-      </div>
-      <Progress value={progress} className="w-full h-2" />
-      <div className="flex items-center gap-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="relative bg-white rounded-xl p-8 shadow-xl w-[400px]">
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          onClick={toggleTimer}
-          className="h-12 w-12 bg-gray-100 hover:bg-gray-200 border-gray-200"
+          onClick={toggleCompactMode}
+          className="absolute top-2 right-2 h-8 w-8 hover:bg-gray-100"
         >
-          {isRunning ? <Pause className="h-6 w-6 text-gray-600" /> : <Play className="h-6 w-6 text-gray-600" />}
+          <Minimize2 className="h-4 w-4 text-gray-600" />
         </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={resetTimer}
-          className="h-12 w-12 bg-gray-100 hover:bg-gray-200 border-gray-200"
-        >
-          <RotateCcw className="h-6 w-6 text-gray-600" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={stopTimer}
-          className="h-12 w-12 bg-gray-100 hover:bg-gray-200 border-gray-200"
-        >
-          <Square className="h-6 w-6 text-gray-600" />
-        </Button>
+
+        {alert && <CustomAlert message={alert} onClose={() => setAlert(null)} />}
+        
+        {taskInfo && (
+          <div className="w-full text-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">{taskInfo.text}</h3>
+            {taskInfo.info && (
+              <p className="text-sm text-gray-600">{taskInfo.info}</p>
+            )}
+          </div>
+        )}
+
+        <div className="text-5xl font-bold text-gray-900 text-center mb-4">
+          {formatTime(timeLeft)}
+        </div>
+
+        <div className="text-lg text-gray-600 text-center mb-6">
+          {isBreak ? 'Break Time' : 'Focus Time'}
+        </div>
+        
+        <Progress value={progress} className="w-full h-2 mb-6" />
+        
+        <div className="flex items-center gap-4 justify-center">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTimer}
+            className="h-12 w-12 bg-gray-100 hover:bg-gray-200 border-gray-200"
+          >
+            {isRunning ? <Pause className="h-6 w-6 text-gray-600" /> : <Play className="h-6 w-6 text-gray-600" />}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={resetTimer}
+            className="h-12 w-12 bg-gray-100 hover:bg-gray-200 border-gray-200"
+          >
+            <RotateCcw className="h-6 w-6 text-gray-600" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={stopTimer}
+            className="h-12 w-12 bg-gray-100 hover:bg-gray-200 border-gray-200"
+          >
+            <Square className="h-6 w-6 text-gray-600" />
+          </Button>
+        </div>
       </div>
     </div>
   );

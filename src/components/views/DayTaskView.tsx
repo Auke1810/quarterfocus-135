@@ -53,30 +53,32 @@ const TaskContainer: React.FC<TaskContainerProps> = ({
     >
       <div className="flex justify-between items-center text-xs font-medium text-gray-500 mb-2">
         <span>{title} (max {maxTasks})</span>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <img
-                src={infoIcon}
-                alt="Info"
-                onMouseEnter={(e) => e.currentTarget.src = infoFocusIcon}
-                onMouseLeave={(e) => e.currentTarget.src = infoIcon}
-                className="w-4 h-4 cursor-help"
-              />
-            </TooltipTrigger>
-            <TooltipContent side="left" className="max-w-xs">
-              {title === "Key Focus task" && (
-                <p>This is your most important task for today. Focus on completing this before moving on to other tasks.</p>
-              )}
-              {title === "Secondary Focus tasks" && (
-                <p>These are your secondary tasks. Start working on these after completing your Key Focus task.</p>
-              )}
-              {title === "the Rest tasks" && (
-                <p>These tasks can be picked up if there's time left, or delegated/planned for another day.</p>
-              )}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {variant === 'default' && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <img
+                  src={infoIcon}
+                  alt="Info"
+                  onMouseEnter={(e) => e.currentTarget.src = infoFocusIcon}
+                  onMouseLeave={(e) => e.currentTarget.src = infoIcon}
+                  className="w-4 h-4 cursor-help"
+                />
+              </TooltipTrigger>
+              <TooltipContent side="left" className="max-w-xs">
+                {title === "Key Focus task" && (
+                  <p>This is your most important task for today. Focus on completing this before moving on to other tasks.</p>
+                )}
+                {title === "Secondary Focus tasks" && (
+                  <p>These are your secondary tasks. Start working on these after completing your Key Focus task.</p>
+                )}
+                {title === "the Rest tasks" && (
+                  <p>These tasks can be picked up if there's time left, or delegated/planned for another day.</p>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
       <SortableContext items={tasks} strategy={verticalListSortingStrategy}>
         {tasks.map(task => (

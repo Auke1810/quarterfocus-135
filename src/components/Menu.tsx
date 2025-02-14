@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useScreenSize } from '@/hooks/useScreenSize';
+import React, { useState } from "react";
+
 import menuIcon from "@/assets/menu.svg";
 import menuFocusIcon from "@/assets/menu-focus.svg";
 import qfLogo from "@/assets/qflogo.svg";
@@ -40,12 +40,7 @@ const MenuItem = ({ to, icon, children, separator, onClick }: MenuItemProps) => 
 export function Menu() {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const { width } = useScreenSize();
 
-  // Automatisch uitklappen bij breed scherm (800px is twee keer de standaard breedte)
-  useEffect(() => {
-    setIsOpen(width >= 800);
-  }, [width]);
 
   return (
     <>
@@ -66,7 +61,7 @@ export function Menu() {
       {/* Slide-out Menu */}
       {isOpen && (
         <div
-          className="fixed top-0 left-0 h-full w-64 bg-white border-r transform transition-all duration-300 ease-in-out z-20"
+          className="fixed top-0 left-0 h-full w-64 bg-white border-r transition-all duration-300 ease-in-out z-20"
         >
         {/* Menu Header */}
         <div className="px-4 py-2 border-b flex items-center gap-2">

@@ -182,12 +182,12 @@ export async function updateTaskInfo(id: string, info: string) {
 export async function getTaskInfo(id: string) {
   const { data, error } = await supabase
     .from("tasks")
-    .select("info")
+    .select("*")
     .eq("id", id)
     .single();
 
   if (error) throw error;
-  return data?.info;
+  return data;
 }
 
 export interface UserPreferences {

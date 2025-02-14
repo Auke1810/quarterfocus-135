@@ -9,6 +9,9 @@ import { Textarea } from "./ui/textarea";
 import pomoStartIcon from '@/assets/pomostart.svg';
 import notesIcon from '@/assets/notes.svg';
 import trashIcon from '@/assets/Trash.svg';
+import infoIcon from '@/assets/info.svg';
+import infoFocusIcon from '@/assets/info-focus.svg';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 
 interface TaskSectionProps {
   type: TaskType;
@@ -49,14 +52,49 @@ const TaskSection: React.FC<TaskSectionProps> = ({
   const getSectionTitle = () => {
     switch(type) {
       case 'big':
-        return `Key Focus Task (${maxTasks})`;
+        return 'Key Focus task';
       case 'medium':
-        return `Secondary Focus Task (${maxTasks})`;
+        return 'Secondary Focus tasks';
       case 'small':
-        return `the Rest (${maxTasks})`;
+        return 'the Rest tasks';
       case 'brain-dump':
         return 'Brain dump';
     }
+  };
+
+  const renderTitle = () => {
+    const title = getSectionTitle();
+    return (
+      <div className="flex items-center gap-2">
+        <span>{title} (max {maxTasks})</span>
+        {viewType === 'focus' && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <img
+                  src={infoIcon}
+                  alt="Info"
+                  onMouseEnter={(e) => e.currentTarget.src = infoFocusIcon}
+                  onMouseLeave={(e) => e.currentTarget.src = infoIcon}
+                  className="w-4 h-4 cursor-help"
+                />
+              </TooltipTrigger>
+              <TooltipContent side="left" className="max-w-xs">
+                {title === "Key Focus task" && (
+                  <p>This is your most important task for today. Focus on completing this before moving on to other tasks.</p>
+                )}
+                {title === "Secondary Focus tasks" && (
+                  <p>These are your secondary tasks. Start working on these after completing your Key Focus task.</p>
+                )}
+                {title === "the Rest tasks" && (
+                  <p>These tasks can be picked up if there's time left, or delegated/planned for another day.</p>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+    );
   };
 
   const handleAddTask = async () => {
@@ -111,7 +149,7 @@ const TaskSection: React.FC<TaskSectionProps> = ({
 
   return (
     <div className="space-y-4 p-4 rounded-lg border border-gray-200 bg-white">
-      <h3 className="text-lg font-semibold">{getSectionTitle()}</h3>
+      <h3 className="text-lg font-semibold">{renderTitle()}</h3>
 
       {type === 'big' ? (
         // Single task view for Key Focus Task
