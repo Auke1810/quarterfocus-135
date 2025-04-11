@@ -8,7 +8,7 @@ import { TaskStatusId } from '@/types/task';
 import { format, parse } from 'date-fns';
 
 const MAX_YEAR_GOALS = 3;
-const MAX_QUARTERLY_GOALS = 1;
+const MAX_QUARTERLY_GOALS = 3;
 
 export const QuarterGoalsView: React.FC = () => {
   const { goals, loading, addGoal, updateGoal } = useGoals();
@@ -50,6 +50,21 @@ export const QuarterGoalsView: React.FC = () => {
     }
   };
 
+  // Hulpfunctie om het huidige kwartaal te bepalen (1-4)
+  const getCurrentQuarter = (): number => {
+    const month = new Date().getMonth();
+    return Math.floor(month / 3) + 1; // 0-11 maanden naar 1-4 kwartalen
+  };
+
+  // Hulpfunctie om de einddatum van een kwartaal te berekenen
+  const getQuarterEndDate = (year: number, quarter: number): Date => {
+    const endMonth = quarter * 3 - 1; // Kwartaal 1 -> maand 2 (maart), etc.
+    const endDate = new Date(year, endMonth, 0);
+    // Laatste dag van de maand
+    endDate.setDate(new Date(year, endMonth + 1, 0).getDate());
+    return endDate;
+  };
+
   const handleAddGoal = async (goalTypeId: number) => {
     try {
       if (goalTypeId === 1 && yearGoals.length >= MAX_YEAR_GOALS) {
@@ -58,19 +73,29 @@ export const QuarterGoalsView: React.FC = () => {
       }
 
       if (goalTypeId === 2 && quarterlyGoals.length >= MAX_QUARTERLY_GOALS) {
-        setAlert('Je kunt maximaal 1 kwartaal milestone hebben.');
+        setAlert(`Je kunt maximaal ${MAX_QUARTERLY_GOALS} kwartaal milestones hebben.`);
         return;
       }
 
       const now = new Date();
-      const endDate = new Date();
+      let endDate = new Date();
       
       if (goalTypeId === 1) {
-        endDate.setFullYear(endDate.getFullYear() + 1);
+        // Voor jaardoelen: einde van het huidige jaar
+        endDate = new Date(now.getFullYear(), 11, 31); // 31 december
       } else {
-        const currentMonth = now.getMonth();
-        const currentQuarter = Math.floor(currentMonth / 3);
-        endDate.setMonth((currentQuarter + 1) * 3, 0);
+        // Voor kwartaaldoelen: einde van het huidige kwartaal
+        const currentYear = now.getFullYear();
+        const currentQuarter = getCurrentQuarter();
+        
+        // Als er al kwartaaldoelen zijn, stel het volgende kwartaal voor
+        if (quarterlyGoals.length > 0) {
+          const nextQuarter = (currentQuarter % 4) + 1;
+          const yearOffset = nextQuarter <= currentQuarter ? 1 : 0;
+          endDate = getQuarterEndDate(currentYear + yearOffset, nextQuarter);
+        } else {
+          endDate = getQuarterEndDate(currentYear, currentQuarter);
+        }
       }
 
       await addGoal({
@@ -203,7 +228,7 @@ export const QuarterGoalsView: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Quarterly Milestone</h2>
+          <h2 className="text-xl font-semibold mb-4">Quarterly Milestones</h2>
           <div className="space-y-4">
             {quarterlyGoals.map((goal, index) => (
               <div key={goal.id} className="group">
@@ -220,7 +245,7 @@ export const QuarterGoalsView: React.FC = () => {
                 className="p-4 rounded-lg cursor-pointer hover:bg-gray-50 text-center"
               >
                 <p className="text-gray-400 italic">
-                  Click to add your quarterly milestone ({quarterlyGoals.length}/{MAX_QUARTERLY_GOALS})...
+                  Click to add a quarterly milestone ({quarterlyGoals.length}/{MAX_QUARTERLY_GOALS})...
                 </p>
               </div>
             )}
