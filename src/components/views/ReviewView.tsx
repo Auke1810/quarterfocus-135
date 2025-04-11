@@ -4,12 +4,12 @@ import { nl } from 'date-fns/locale';
 import { Task, TaskStatusId } from '@/types/task';
 import { ReviewTaskItem } from '@/components/ReviewTaskItem';
 import { useSupabase } from '@/hooks/useSupabase';
-import { CustomAlert } from '@/components/ui/CustomAlert';
+import { toast } from 'sonner';
 
 export const ReviewView: React.FC = () => {
   const [tasks, setTasks] = useState<Record<string, Task[]>>({});
   const [loading, setLoading] = useState(true);
-  const [alert, setAlert] = useState<string | null>(null);
+  // Removed alert state in favor of toast
   const { supabase } = useSupabase();
 
   const fetchTasksForReview = async (): Promise<Record<string, Task[]>> => {
@@ -63,7 +63,7 @@ export const ReviewView: React.FC = () => {
       // Check if all tasks have been processed
       const totalTasks = Object.values(groupedTasks).reduce((sum, tasks) => sum + tasks.length, 0);
       if (!loading && totalTasks === 0) {
-        setAlert('Congratulations! You have reviewed all your tasks. Time to celebrate your wins! 🎉');
+        toast.success('Congratulations! You have reviewed all your tasks. Time to celebrate your wins! 🎉');
       }
     };
 
@@ -113,7 +113,7 @@ export const ReviewView: React.FC = () => {
       const taskTypeName = getTaskTypeName(task.task_type);
 
       if (existingTasks && existingTasks.length >= taskLimit) {
-        setAlert(`You have already reached the maximum number of ${taskTypeName} (${taskLimit}) planned for next week on this day.`);
+        toast.warning(`You have already reached the maximum number of ${taskTypeName} (${taskLimit}) planned for next week on this day.`);
         return;
       }
 
@@ -144,9 +144,9 @@ export const ReviewView: React.FC = () => {
       // Check if all tasks are processed
       const totalTasks = Object.values(updatedTasks).reduce((sum, tasks) => sum + tasks.length, 0);
       if (totalTasks === 0) {
-        setAlert('Congratulations! You have reviewed all your tasks. Time to celebrate your wins! 🎉');
+        toast.success('Congratulations! You have reviewed all your tasks. Time to celebrate your wins! 🎉');
       } else {
-        setAlert('Task successfully duplicated to next week!');
+        toast.success('Task successfully duplicated to next week!');
       }
     } catch (error) {
       console.error('Error duplicating task:', error);
@@ -217,7 +217,7 @@ export const ReviewView: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      {alert && <CustomAlert message={alert} onClose={() => setAlert(null)} />}
+      {/* Alert is now handled by Sonner toast */}
       <h1 className="text-2xl font-bold mb-6">Review</h1>
       {sortedDates.map(date => renderDateBlock(date, tasks[date]))}
     </div>

@@ -5,6 +5,7 @@ import { QuarterGoalsView } from '@/components/views/QuarterGoalsView';
 import { VisionView } from '@/components/views/VisionView';
 import { ReviewView } from '@/components/views/ReviewView';
 import { BrainDumpView } from '@/components/views/BrainDumpView';
+import { LogbookView } from '@/components/views/LogbookView';
 
 const routes = [
   {
@@ -38,6 +39,10 @@ const routes = [
       {
         path: '/review',
         element: <ReviewView />,
+      },
+      {
+        path: '/logbook',
+        element: <LogbookView />,
       },
     ],
   },

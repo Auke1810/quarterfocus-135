@@ -6,6 +6,8 @@ import { SortableTaskList } from './SortableTaskList';
 import { Checkbox } from "./ui/checkbox";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { TaskCompletionDialog } from './TaskCompletionDialog';
+import { useTaskCompletionDialog } from '@/hooks/useTaskCompletionDialog';
 import pomoStartIcon from '@/assets/pomostart.svg';
 import notesIcon from '@/assets/notes.svg';
 import trashIcon from '@/assets/Trash.svg';
@@ -42,6 +44,9 @@ const TaskSection: React.FC<TaskSectionProps> = ({
   const [noteText, setNoteText] = useState("");
   const [isPomodoroOpen, setIsPomodoroOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  
+  // Dialog state voor het tonen van een bericht bij het afronden van een taak
+  const { isOpen, taskName, openCompletionDialog, closeCompletionDialog } = useTaskCompletionDialog();
   
   const filteredTasks = type === 'brain-dump'
     ? propTasks.map(parseTaskInfo)
@@ -127,6 +132,11 @@ const TaskSection: React.FC<TaskSectionProps> = ({
     ].join('\n');
     
     onUpdateTask({ ...task, info });
+    
+    // Als een subtaak wordt afgevinkt, ook een felicitatie tonen
+    if (completed) {
+      openCompletionDialog(task);
+    }
   };
 
   const handleNoteEdit = (task: TaskWithParsedInfo) => {
@@ -147,6 +157,25 @@ const TaskSection: React.FC<TaskSectionProps> = ({
     setExpandedTaskId(expandedTaskId === taskId ? null : taskId);
   };
 
+  // Wrapper voor onUpdateTask die ook de dialoog toont wanneer nodig
+  const handleTaskUpdate = async (task: Task, newStatus?: number) => {
+    const wasCompleted = task.status_id === TaskStatusId.COMPLETED;
+    const willBeCompleted = newStatus === TaskStatusId.COMPLETED;
+    
+    // Update de taak
+    const updatedTask = newStatus !== undefined ? {
+      ...task,
+      status_id: newStatus
+    } : task;
+    
+    await onUpdateTask(updatedTask);
+    
+    // Toon een felicitatie alleen als de taak nieuw is afgevinkt
+    if (!wasCompleted && willBeCompleted) {
+      openCompletionDialog(task);
+    }
+  };
+
   return (
     <div className="space-y-4 p-4 rounded-lg border border-gray-200 bg-white">
       <h3 className="text-lg font-semibold">{renderTitle()}</h3>
@@ -160,10 +189,10 @@ const TaskSection: React.FC<TaskSectionProps> = ({
                 <Checkbox
                   checked={task.status_id === TaskStatusId.COMPLETED}
                   onCheckedChange={(checked) => 
-                    onUpdateTask({ 
-                      ...task, 
-                      status_id: checked ? TaskStatusId.COMPLETED : TaskStatusId.IN_PROGRESS
-                    })
+                    handleTaskUpdate(
+                      task, 
+                      checked ? TaskStatusId.COMPLETED : TaskStatusId.IN_PROGRESS
+                    )
                   }
                   id={task.id}
                 />
@@ -289,6 +318,12 @@ const TaskSection: React.FC<TaskSectionProps> = ({
           />
         </div>
       )}
+      {/* Toon de felicitatie dialoog wanneer een taak is afgerond */}
+      <TaskCompletionDialog
+        isOpen={isOpen}
+        taskName={taskName}
+        onOpenChange={closeCompletionDialog}
+      />
     </div>
   );
 };

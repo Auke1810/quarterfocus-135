@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Input } from './ui/input';
+import { DailyFocusDialog } from './DailyFocusDialog';
+import { useDailyFocusPrompt } from '@/hooks/useDailyFocusPrompt';
 
 interface DayFocusProps {
   focus: string;
@@ -9,6 +11,7 @@ interface DayFocusProps {
 export const DayFocus: React.FC<DayFocusProps> = ({ focus, onUpdateFocus }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(focus);
+  const { isDialogOpen, setIsDialogOpen } = useDailyFocusPrompt(focus, onUpdateFocus);
 
   const handleUpdate = async () => {
     if (editText.trim() !== focus) {
@@ -35,20 +38,27 @@ export const DayFocus: React.FC<DayFocusProps> = ({ focus, onUpdateFocus }) => {
           onChange={(e) => setEditText(e.target.value)}
           onBlur={handleUpdate}
           onKeyDown={handleKeyDown}
-          placeholder="What's your main focus for today?"
+          placeholder="Wat is je belangrijkste focus voor vandaag?"
           className="text-muted-foreground"
         />
       ) : (
         <div
-          className="cursor-pointer text-muted-foreground hover:text-foreground"
+          className="cursor-pointer text-muted-foreground hover:text-foreground text-sm font-medium pl-2"
           onClick={() => {
             setIsEditing(true);
             setEditText(focus);
           }}
         >
-          {focus || "Click to set today's focus"}
+          {focus || "Klik om focus voor vandaag in te stellen"}
         </div>
       )}
+      
+      <DailyFocusDialog 
+        isOpen={isDialogOpen} 
+        onOpenChange={setIsDialogOpen}
+        onSaveFocus={onUpdateFocus}
+        defaultFocus={focus || ""}
+      />
     </div>
   );
 };

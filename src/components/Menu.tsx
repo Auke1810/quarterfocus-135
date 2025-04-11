@@ -118,6 +118,12 @@ export function Menu() {
           >
             Review
           </MenuItem>
+          <MenuItem 
+            to="/logbook"
+            onClick={() => setIsOpen(false)}
+          >
+            Logboek
+          </MenuItem>
         </nav>
       </div>
       )}

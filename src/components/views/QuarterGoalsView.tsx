@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useGoals } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CustomAlert } from '@/components/ui/CustomAlert';
+import { toast } from 'sonner';
 import { Goal } from '@/types/goals';
 import { TaskStatusId } from '@/types/task';
 import { format, parse } from 'date-fns';
@@ -16,7 +16,7 @@ export const QuarterGoalsView: React.FC = () => {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
-  const [alert, setAlert] = useState<string | null>(null);
+  // Removed alert state in favor of toast
 
   const yearGoals = goals.filter(goal => goal.goal_type.name === 'year');
   const quarterlyGoals = goals.filter(goal => goal.goal_type.name === 'quarterly');
@@ -44,9 +44,9 @@ export const QuarterGoalsView: React.FC = () => {
       setEditDescription('');
       setEditDueDate('');
 
-      setAlert('Goal successfully saved.');
+      toast.success('Goal successfully saved.');
     } catch (error) {
-      setAlert('Something went wrong while saving your goal.');
+      toast.error('Something went wrong while saving your goal.');
     }
   };
 
@@ -68,12 +68,12 @@ export const QuarterGoalsView: React.FC = () => {
   const handleAddGoal = async (goalTypeId: number) => {
     try {
       if (goalTypeId === 1 && yearGoals.length >= MAX_YEAR_GOALS) {
-        setAlert('Je kunt maximaal 3 jaar goals hebben.');
+        toast.warning('Je kunt maximaal 3 jaar goals hebben.');
         return;
       }
 
       if (goalTypeId === 2 && quarterlyGoals.length >= MAX_QUARTERLY_GOALS) {
-        setAlert(`Je kunt maximaal ${MAX_QUARTERLY_GOALS} kwartaal milestones hebben.`);
+        toast.warning(`Je kunt maximaal ${MAX_QUARTERLY_GOALS} kwartaal milestones hebben.`);
         return;
       }
 
@@ -107,9 +107,9 @@ export const QuarterGoalsView: React.FC = () => {
         status_id: TaskStatusId.IN_PROGRESS
       });
 
-      setAlert('Goal aangemaakt. Je kunt deze nu bewerken.');
+      toast.success('Goal aangemaakt. Je kunt deze nu bewerken.');
     } catch (error) {
-      setAlert('Er is iets misgegaan bij het aanmaken van je goal.');
+      toast.error('Er is iets misgegaan bij het aanmaken van je goal.');
     }
   };
 
@@ -200,7 +200,7 @@ export const QuarterGoalsView: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      {alert && <CustomAlert message={alert} onClose={() => setAlert(null)} />}
+      {/* Alert is now handled by Sonner toast */}
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Year Goals</h2>

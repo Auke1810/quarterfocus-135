@@ -196,6 +196,8 @@ export interface UserPreferences {
   pomodoroLongBreakLength: number;
   workStartTime: string;
   workEndTime: string;
+  googleCalendarConnected?: boolean;
+  selectedCalendars?: string[];
 }
 
 export async function saveUserPreferences(preferences: UserPreferences) {
@@ -210,7 +212,9 @@ export async function saveUserPreferences(preferences: UserPreferences) {
       short_break_length: preferences.pomodoroShortBreakLength,
       long_break_length: preferences.pomodoroLongBreakLength,
       work_start_time: preferences.workStartTime,
-      work_end_time: preferences.workEndTime
+      work_end_time: preferences.workEndTime,
+      google_calendar_connected: preferences.googleCalendarConnected || false,
+      selected_calendars: preferences.selectedCalendars || []
     }, {
       onConflict: 'user_id'
     });
@@ -224,7 +228,7 @@ export async function getUserPreferences(): Promise<UserPreferences | null> {
 
   const { data, error } = await supabase
     .from("user_settings")
-    .select("focus_length, short_break_length, long_break_length, work_start_time, work_end_time")
+    .select("focus_length, short_break_length, long_break_length, work_start_time, work_end_time, google_calendar_connected, selected_calendars")
     .eq("user_id", user.id)
     .single();
 
@@ -242,6 +246,8 @@ export async function getUserPreferences(): Promise<UserPreferences | null> {
     pomodoroShortBreakLength: data.short_break_length,
     pomodoroLongBreakLength: data.long_break_length,
     workStartTime: data.work_start_time,
-    workEndTime: data.work_end_time
+    workEndTime: data.work_end_time,
+    googleCalendarConnected: data.google_calendar_connected || false,
+    selectedCalendars: data.selected_calendars || []
   };
 }

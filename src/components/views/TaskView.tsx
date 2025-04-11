@@ -7,6 +7,7 @@ import { DayFocus } from '../DayFocus';
 import { WeekView } from './WeekView';
 import { PomodoroStats } from '../PomodoroStats';
 import { usePomodoroStats } from '@/hooks/usePomodoroStats';
+import { CalendarEventsList } from '../CalendarEventsList';
 
 interface TaskViewProps {
   viewType: ViewType;
@@ -91,6 +92,14 @@ export const TaskView: React.FC<TaskViewProps> = ({ viewType }) => {
               maxTasks={5}
               viewType={viewType}
             />
+            
+            {/* Google Calendar integatie */}
+            {viewType === 'focus' && (
+              <CalendarEventsList date={new Date()} />
+            )}
+            {viewType === 'tomorrow' && (
+              <CalendarEventsList date={new Date(new Date().setDate(new Date().getDate() + 1))} />
+            )}
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Task, TaskWithParsedInfo, parseTaskInfo, ViewType } from '@/types/task';
+import { Task, TaskWithParsedInfo, parseTaskInfo, ViewType, TaskStatusId } from '@/types/task';
 import { SortableTaskItem } from './SortableTaskItem';
 
 interface SortableTaskListProps {

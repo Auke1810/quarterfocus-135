@@ -14,6 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { CalendarEventsList } from '../CalendarEventsList';
 
 interface DayTaskViewProps {
   dayIndex: number;
@@ -22,6 +23,7 @@ interface DayTaskViewProps {
   onUpdateTask: (task: Task) => Promise<void>;
   onDeleteTask: (taskId: string) => Promise<void>;
   variant?: 'default' | 'week';
+  date?: Date;
 }
 
 interface TaskContainerProps {
@@ -48,7 +50,7 @@ const TaskContainer: React.FC<TaskContainerProps> = ({
   return (
     <div 
       ref={setNodeRef}
-      className="bg-gray-50 p-2 rounded-lg transition-colors"
+      className="bg-gray-50 p-2 rounded-lg transition-colors mb-2.5"
       style={{ minHeight: '4rem' }}
     >
       <div className="flex justify-between items-center text-xs font-medium text-gray-500 mb-2">
@@ -101,7 +103,8 @@ export const DayTaskView: React.FC<DayTaskViewProps> = ({
   onAddTask,
   onUpdateTask,
   onDeleteTask,
-  variant = 'default'
+  variant = 'default',
+  date = new Date() // Standaard de huidige datum
 }) => {
   const [newTaskText, setNewTaskText] = useState('');
   
@@ -173,6 +176,8 @@ export const DayTaskView: React.FC<DayTaskViewProps> = ({
         onDeleteTask={onDeleteTask}
         variant={variant}
       />
+      
+      {/* Google Calendar events worden nu weergegeven in de TaskView component */}
     </div>
   );
 };

@@ -6,8 +6,15 @@
   "permissions": [
     "storage",
     "alarms",
-    "system.display"
+    "system.display",
+    "identity"
   ],
+  "oauth2": {
+    "client_id": "857562712813-i27c40k2j98k72rmn8lnqectcnethdtc.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.readonly"
+    ]
+  },
   "background": {
     "service_worker": "src/background.ts",
     "type": "module"
