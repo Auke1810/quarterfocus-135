@@ -39,7 +39,7 @@ export function LoginButton() {
             <img src={profileIcon} alt="Profile" className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-48 rounded-lg overflow-hidden">
           {user ? (
             <>
               <DropdownMenuItem onSelect={() => setPreferencesOpen(true)}>
