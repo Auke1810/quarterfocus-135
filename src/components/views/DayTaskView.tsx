@@ -53,7 +53,7 @@ const TaskContainer: React.FC<TaskContainerProps> = ({
       className="bg-gray-50 p-2 rounded-lg transition-colors mb-2.5"
       style={{ minHeight: '4rem' }}
     >
-      <div className="flex justify-between items-center text-xs font-medium text-gray-500 mb-2">
+      <div className={`flex justify-between items-center ${variant === 'week' ? 'text-lg' : 'text-xs'} font-medium text-gray-500 mb-2`}>
         <span>{title} (max {maxTasks})</span>
         {variant === 'default' && (
           <TooltipProvider>

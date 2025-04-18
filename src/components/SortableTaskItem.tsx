@@ -130,11 +130,13 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
         <div>
           {variant === 'default' ? (
             <div className="flex items-center gap-3">
-              <Checkbox
-                checked={task.status_id === TaskStatusId.COMPLETED}
-                onCheckedChange={(checked) => handleTaskUpdate(checked as boolean)}
-                id={task.id}
-              />
+              {viewType === 'focus' && (
+                <Checkbox
+                  checked={task.status_id === TaskStatusId.COMPLETED}
+                  onCheckedChange={(checked) => handleTaskUpdate(checked as boolean)}
+                  id={task.id}
+                />
+              )}
               
               {viewType === 'focus' && (
                 <>
@@ -211,24 +213,54 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <Checkbox
-                checked={task.status_id === TaskStatusId.COMPLETED}
-                onCheckedChange={(checked) => 
-                  onUpdateTask({
-                    ...task,
-                    status_id: checked ? TaskStatusId.COMPLETED : TaskStatusId.IN_PROGRESS
-                  })
-                }
-                id={task.id}
-              />
               
               <span 
                 className={task.status_id === TaskStatusId.COMPLETED ? "line-through text-gray-500" : ""}
+                onClick={handleNoteEdit}
               >
                 {task.text}
               </span>
               
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-2">
+                {(task.notes.length > 0 || task.subtasks.length > 0) && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <img 
+                          src={notesIcon} 
+                          alt="Notes" 
+                          className="w-4 h-4 cursor-pointer"
+                          onClick={toggleNotes}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs p-2 text-sm">
+                        <div>
+                          {task.notes.map((note, i) => (
+                            <p key={i} className="whitespace-pre-wrap">{note}</p>
+                          ))}
+                          {task.subtasks.length > 0 && (
+                            <ul className="mt-1">
+                              {task.subtasks.map((subtask, i) => (
+                                <li key={i} className="flex items-center gap-1">
+                                  <span>{subtask.completed ? '✓' : '○'}</span>
+                                  <span>{subtask.text}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+                
+                <button 
+                  onClick={() => onDeleteTask(task.id)}
+                  className="p-1 hover:bg-gray-100 rounded-full"
+                >
+                  <img src={trashIcon} alt="Delete" className="w-4 h-4" />
+                </button>
+                
                 <div 
                   {...attributes} 
                   {...listeners}
